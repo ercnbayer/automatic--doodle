@@ -18,7 +18,7 @@ var (
 	UserRepositoryProviderSet wire.ProviderSet = wire.NewSet(UserRepo.New,
 		wire.Bind(new(authService.UserRepository), new(*UserRepo.UserRepository)))
 
-	UserRouteProviderSet wire.ProviderSet = wire.NewSet(UserRest.New,
+	UserRestProviderSet wire.ProviderSet = wire.NewSet(UserRest.New,
 
 		wire.Bind(new(router.UserHandler), new(*UserRest.Rest)))
 )

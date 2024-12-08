@@ -1,5 +1,9 @@
 package main
 
-func main() {
+import (
+	"automatic-doodle/di"
+)
 
+func main() {
+	di.DBBuilder()
 }

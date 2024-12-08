@@ -32,6 +32,7 @@ require (
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/gofiber/fiber/v2 v2.52.5
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/wire v0.6.0
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect

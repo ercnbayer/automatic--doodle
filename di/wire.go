@@ -19,12 +19,15 @@ func Wire(
 ) *server.Server {
 	panic(wire.Build(
 		ConfigProviderSet,
-		EncryptionProviderSet, UserFactoryProviderSet,
+		EncryptionProviderSet,
+		AccessTokenProvider,
+
+		UserFactoryProviderSet,
 		UserRepositoryProviderSet,
-		//UserServiceProviderSet,
 		AuthenticationServiceProviderSet,
 		AuthenticationMiddlewareProviderSet,
-		UserRouteProviderSet,
+		UserRestProviderSet,
+
 		RouterProviderSet,
 		ServerProviderSet,
 	))

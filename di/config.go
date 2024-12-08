@@ -1,7 +1,7 @@
 package di
 
 import (
-	"automatic-doodle/modules/access-token/service"
+	accessTokenService "automatic-doodle/modules/access-token/service"
 	"automatic-doodle/pkg/config"
 	"automatic-doodle/pkg/encryption"
 	"automatic-doodle/pkg/logger"
@@ -15,7 +15,7 @@ var ConfigProviderSet wire.ProviderSet = wire.NewSet(
 	config.New,
 
 	wire.Bind(
-		new(service.ConfigModule),
+		new(accessTokenService.ConfigModule),
 		new(*config.ConfigModule),
 	),
 	wire.Bind(

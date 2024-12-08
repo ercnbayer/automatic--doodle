@@ -1,16 +1,11 @@
 package rest
 
 import (
-	authMiddleWare "automatic-doodle/modules/auth/middleware"
-	authService "automatic-doodle/modules/auth/service"
-	UserService "automatic-doodle/modules/user/service"
 	"sync"
 )
 
 type Rest struct {
-	AuthenticationMiddleware authMiddleWare.Middleware
-	UserService              UserService.UserService
-	AuthService              authService.Service
+	AuthenticationMiddleware AuthenticationMiddleware
 }
 
 var (
@@ -19,10 +14,12 @@ var (
 )
 
 func New(
-	authenticationMiddleware authMiddleWare.Middleware,
+	authenticationMiddleware AuthenticationMiddleware,
 ) *Rest {
 	moduleOnce.Do(func() {
-		module = Rest{}
+		module = Rest{
+			AuthenticationMiddleware: authenticationMiddleware,
+		}
 	})
 
 	return &module
