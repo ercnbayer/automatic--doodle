@@ -1,8 +1,6 @@
 package service
 
 import (
-	"automatic-doodle/pkg/config"
-	"automatic-doodle/pkg/logger"
 	"automatic-doodle/types"
 	"sync"
 )
@@ -13,15 +11,15 @@ var (
 )
 
 type Service struct {
-	cfg           config.ConfigModule
-	log           logger.Logger
+	cfg           ConfigModule
+	log           Logger
 	adminCreds    types.JWTCredentials
 	customerCreds types.JWTCredentials
 }
 
 func New(
-	cfg config.ConfigModule,
-	log logger.Logger,
+	cfg ConfigModule,
+	log Logger,
 ) *Service {
 	moduleOnce.Do(func() {
 		module = Service{

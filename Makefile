@@ -1,10 +1,5 @@
 .PHONY: ent
 
-DB_USER="automatic-doodle"
-DB_PWD="SecretPwd123!"
-DB_HOST="localhost"
-DB_PORT=5433
-DB_NAME="arrndme"
 
 install:
 	go install github.com/google/wire/cmd/wire@latest

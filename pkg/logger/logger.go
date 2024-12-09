@@ -135,7 +135,7 @@ func (l *Logger) Fatal(format string, args ...any) {
 
 func New(module string) *Logger {
 	return &Logger{
-		app:        "ArrndMe",
+		app:        "AutoDoodle",
 		module:     module,
 		dateFormat: "2006-01-02T15:04:05.00000000000Z07:00",
 		colors:     DefaultColors,

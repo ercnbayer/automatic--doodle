@@ -1,12 +1,17 @@
 package rest
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"automatic-doodle/pkg/errors"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 func (r *Rest) DeleteUser(c *fiber.Ctx) error {
 	pLocalUser := c.Locals("user")
 
 	if pLocalUser == nil {
 		// to do throw err
+		return errors.New("Delete User", "NULL USER INFO")
 	}
 
 	return c.Status(200).JSON("OK")

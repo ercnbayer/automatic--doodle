@@ -1,11 +1,12 @@
 package postgres
 
 import (
+	"automatic-doodle/ent"
 	"context"
 	"fmt"
 	"time"
 
-	"automatic-doodle/ent"
+	_ "github.com/lib/pq"
 )
 
 type Logger interface {
@@ -34,6 +35,7 @@ func New(
 	if err != nil {
 		log.Fatal(`POSTGRES_DB_PWD is failed to fetch: %w`, err)
 	}
+	log.Info("PASSWORD:%s", pwd)
 
 	host, err := cfg.GetConfig("POSTGRES_DB_HOST")
 	if err != nil {
@@ -58,6 +60,8 @@ func New(
 		port,
 		dbName,
 	)
+	fmt.Println(user)
+	fmt.Println(dbName)
 
 	sleepTime := time.Duration(10) * time.Second
 

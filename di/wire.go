@@ -1,3 +1,6 @@
+//go:build wireinject
+// +build wireinject
+
 package di
 
 import (
@@ -21,13 +24,14 @@ func Wire(
 		ConfigProviderSet,
 		EncryptionProviderSet,
 		AccessTokenProvider,
-
+		RefreshTokenFactoryProvider,
+		RefreshTokenRepositoryProvider,
 		UserFactoryProviderSet,
 		UserRepositoryProviderSet,
 		AuthenticationServiceProviderSet,
 		AuthenticationMiddlewareProviderSet,
 		UserRestProviderSet,
-
+		AuthenticationRestProviderSet,
 		RouterProviderSet,
 		ServerProviderSet,
 	))

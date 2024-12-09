@@ -46,8 +46,20 @@ type UserRepository interface {
 	Create(*ent.UserCreate, context.Context) (*ent.User, error)
 	GetById(uuid.UUID, context.Context) (*ent.User, error)
 	DeleteUser(uuid.UUID, context.Context) error
+	GetByIdentifier(string, context.Context) (*ent.User, error)
 }
 
 type AccessTokenRepository interface {
 	Validate(user.Role, *string) (string, error)
+}
+type RefreshTokenFactory interface {
+	Create(uuid.UUID) *ent.RefreshTokenCreate
+}
+
+type RefreshTokenRepository interface {
+	Create(
+		*ent.RefreshTokenCreate,
+		context.Context,
+	) (*ent.RefreshToken, error)
+	GetByTokenWithUser(string, context.Context) (*ent.RefreshToken, error)
 }

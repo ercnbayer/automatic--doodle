@@ -13,11 +13,13 @@ var (
 
 func New(
 	userHandlers UserHandler,
+	authHandlers AuthHandler,
 ) *Router {
 	moduleOnce.Do(func() {
 		module = Router{
 			Handlers: utils.MergeArrays(
 				userHandlers.GetRoutes(),
+				authHandlers.GetRoutes(),
 			),
 		}
 	})

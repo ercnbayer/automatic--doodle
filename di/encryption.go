@@ -2,6 +2,7 @@ package di
 
 import (
 	authService "automatic-doodle/modules/auth/service"
+	refreshTokenFactory "automatic-doodle/modules/refresh-token/factory"
 	userFactory "automatic-doodle/modules/user/factory"
 	"automatic-doodle/pkg/encryption"
 	"automatic-doodle/pkg/logger"
@@ -20,6 +21,7 @@ var EncryptionProviderSet wire.ProviderSet = wire.NewSet(
 		new(userFactory.Encryption),
 		new(*encryption.EncryptionModule),
 	),
+	wire.Bind(new(refreshTokenFactory.Encryption), new(*encryption.EncryptionModule)),
 	wire.InterfaceValue(
 		new(encryption.Logger),
 		logger.New("EncryptionModule"),

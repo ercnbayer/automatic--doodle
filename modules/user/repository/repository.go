@@ -2,6 +2,7 @@ package repository
 
 import (
 	"automatic-doodle/ent"
+	"automatic-doodle/ent/user"
 	"context"
 	"fmt"
 	"sync"
@@ -64,6 +65,25 @@ func (repo *UserRepository) GetById(id uuid.UUID, ctx context.Context) (*ent.Use
 	}
 
 	return user, nil
+}
+func (repo *UserRepository) GetByIdentifier(
+	identifier string,
+	ctx context.Context,
+) (*ent.User, error) {
+	item, err := repo.db.User.Query().
+		Where(
+			user.Or(
+				user.Email(identifier),
+				// user.Email(identifier),
+				user.PhoneNumber(identifier),
+			),
+		).
+		First(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return item, nil
 }
 
 func (repo *UserRepository) DeleteUser(id uuid.UUID, ctx context.Context) error {

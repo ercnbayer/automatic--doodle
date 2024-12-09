@@ -1,9 +1,10 @@
 package main
 
-import (
-	"automatic-doodle/di"
-)
+import "automatic-doodle/di"
 
 func main() {
-	di.DBBuilder()
+	db := di.DBBuilder()
+	server := di.Wire(db)
+
+	server.Listen(4000)
 }

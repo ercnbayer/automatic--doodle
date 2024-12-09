@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  localstack:
+    container_name: "arrndme_localstack"
+    image: localstack/localstack
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4510-4559:4510-4559"
+      - "127.0.0.1:53:53"
+      - "127.0.0.1:53:53/udp"
+      - "127.0.0.1:443:443"
+    environment:
+      - SERVICES=s3,sns
+      - DATA_DIR=/tmp/localstack/data
+      - AWS_DEFAULT_REGION=eu-west-2
+      - DEFAULT_REGION=eu-west-2
+      - HOST_TMP_FOLDER=/tmp/localstack
+      - DEBUG=1
+      - DISABLE_CORS_CHECKS=1
+      - EDGE_PORT=4566
+      - ENFORCE_IAM=1
+    volumes:
+      - arrndme_localstack:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./localstack/cors-config.json:/cors-config.json
+      - ./localstack/entrypoint.sh:/etc/localstack/init/ready.d/init-aws.sh
+
+  postgres:
+    container_name: arrndme_postgres
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: doodle
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: my_secure_pass
+    
+    ports:
+      - 5433:5432
+    volumes:
+      - arrndme_postgres:/var/lib/postgresql/data
+
+  redis:
+    container_name: arrndme_redis
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - arrndme_redis:/data
+      - ./tools/docker/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - 6379:6379
+
+volumes:
+  arrndme_postgres:
+  arrndme_localstack:
+  arrndme_redis:

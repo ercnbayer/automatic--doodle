@@ -2,7 +2,9 @@ package di
 
 import (
 	authenticationMiddleware "automatic-doodle/modules/auth/middleware"
+	authRest "automatic-doodle/modules/auth/rest"
 	authService "automatic-doodle/modules/auth/service"
+	"automatic-doodle/modules/router"
 	userRest "automatic-doodle/modules/user/rest"
 	"automatic-doodle/pkg/logger"
 
@@ -16,6 +18,7 @@ var (
 			new(authenticationMiddleware.AuthenticationService),
 			new(*authService.Service),
 		),
+		wire.Bind(new(authRest.AuthenticationService), new(*authService.Service)),
 
 		wire.InterfaceValue(
 			new(authService.Logger),
@@ -29,6 +32,9 @@ var (
 			new(userRest.AuthenticationMiddleware),
 			new(*authenticationMiddleware.Middleware),
 		),
+		wire.Bind(new(authRest.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
 		wire.InterfaceValue(new(authenticationMiddleware.Logger), logger.New("Authentication Middleware Logger")),
 	)
+	AuthenticationRestProviderSet wire.ProviderSet = wire.NewSet(authRest.New, wire.Bind(new(router.AuthHandler), new(*authRest.Rest)),
+		wire.InterfaceValue(new(authRest.Logger), logger.New("AuthRestLogger")))
 )

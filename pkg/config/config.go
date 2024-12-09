@@ -30,6 +30,7 @@ func New(
 		fmt.Println("Logger is not provided for ConfigModule!")
 		os.Exit(1)
 	}
+	fmt.Println("config works")
 
 	configModuleOnce.Do(func() {
 		configModule = ConfigModule{
