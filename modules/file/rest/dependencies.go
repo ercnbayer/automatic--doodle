@@ -21,5 +21,5 @@ type FileService interface {
 }
 
 type AuthenticationMiddleware interface {
-	Authentication(*fiber.Ctx) error
+	Auth(*fiber.Ctx) error
 }

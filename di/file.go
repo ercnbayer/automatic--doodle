@@ -6,6 +6,7 @@ import (
 	fileRest "automatic-doodle/modules/file/rest"
 	fileService "automatic-doodle/modules/file/service"
 	router "automatic-doodle/modules/router"
+	userService "automatic-doodle/modules/user/service"
 
 	"automatic-doodle/pkg/logger"
 
@@ -17,10 +18,13 @@ var (
 
 		fileFactory.New,
 		wire.Bind(new(fileService.FileFactory), new(*fileFactory.Factory)),
+		wire.Bind(new(userService.FileFactory), new(*fileFactory.Factory)),
 	)
 
-	FileRepositoryProvider wire.ProviderSet = wire.NewSet(fileRepository.New, wire.Bind(new(fileService.FileRepository), new(*fileRepository.Repository)))
-	FileRestProviderSet    wire.ProviderSet = wire.NewSet(
+	FileRepositoryProvider wire.ProviderSet = wire.NewSet(fileRepository.New,
+		wire.Bind(new(fileService.FileRepository), new(*fileRepository.Repository)),
+		wire.Bind(new(userService.FileRepository), new(*fileRepository.Repository)))
+	FileRestProviderSet wire.ProviderSet = wire.NewSet(
 		fileRest.New,
 
 		wire.Bind(

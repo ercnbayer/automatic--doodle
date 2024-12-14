@@ -12,7 +12,7 @@ func (r *Rest) GetRoutes() []types.HandlerItem {
 			Path:   "/files",
 			Method: "POST",
 			Handler: []func(*fiber.Ctx) error{
-				r.authenticationMiddleware.Authentication,
+				r.authenticationMiddleware.Auth,
 				r.CreateUploadUrl,
 			},
 		},

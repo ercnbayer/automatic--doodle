@@ -14,7 +14,7 @@ var (
 func New(
 	userHandlers UserHandler,
 	authHandlers AuthHandler,
-	profile_photo Profile_PhotoHandler,
+	profileHandler ProfileHandler,
 	fileHandler FileHandler,
 ) *Router {
 	moduleOnce.Do(func() {
@@ -22,7 +22,7 @@ func New(
 			Handlers: utils.MergeArrays(
 				userHandlers.GetRoutes(),
 				authHandlers.GetRoutes(),
-				profile_photo.GetRoutes(),
+				profileHandler.GetRoutes(),
 				fileHandler.GetRoutes(),
 			),
 		}

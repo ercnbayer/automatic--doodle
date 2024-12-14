@@ -16,7 +16,7 @@ type UserFactory interface {
 type UserRepository interface {
 	Create(*ent.UserCreate, context.Context) (*ent.User, error)
 	DeleteUser(uuid.UUID, context.Context) error
-	GetById(uuid.UUID) (*ent.User, error)
+	GetById(uuid.UUID, context.Context) (*ent.User, error)
 }
 
 type FileRepository interface {

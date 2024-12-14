@@ -6,6 +6,7 @@ import (
 	"automatic-doodle/pkg/encryption"
 	"automatic-doodle/pkg/logger"
 	"automatic-doodle/pkg/postgres"
+	s3client "automatic-doodle/pkg/s3_client"
 	"automatic-doodle/pkg/server"
 
 	"github.com/google/wire"
@@ -30,6 +31,7 @@ var ConfigProviderSet wire.ProviderSet = wire.NewSet(
 		new(server.ConfigModule),
 		new(*config.ConfigModule),
 	),
+	wire.Bind(new(s3client.ConfigModule), new(*config.ConfigModule)),
 
 	wire.InterfaceValue(
 		new(config.Logger),

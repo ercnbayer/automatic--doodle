@@ -12,16 +12,23 @@ import (
 	"automatic-doodle/modules/auth/middleware"
 	rest2 "automatic-doodle/modules/auth/rest"
 	service2 "automatic-doodle/modules/auth/service"
+	factory3 "automatic-doodle/modules/file/factory"
+	repository3 "automatic-doodle/modules/file/repository"
+	rest4 "automatic-doodle/modules/file/rest"
+	service4 "automatic-doodle/modules/file/service"
+	rest3 "automatic-doodle/modules/profile/rest"
 	"automatic-doodle/modules/refresh-token/factory"
 	"automatic-doodle/modules/refresh-token/repository"
 	"automatic-doodle/modules/router"
 	factory2 "automatic-doodle/modules/user/factory"
 	repository2 "automatic-doodle/modules/user/repository"
 	"automatic-doodle/modules/user/rest"
+	service3 "automatic-doodle/modules/user/service"
 	"automatic-doodle/pkg/config"
 	"automatic-doodle/pkg/encryption"
 	"automatic-doodle/pkg/logger"
 	"automatic-doodle/pkg/postgres"
+	"automatic-doodle/pkg/s3_client"
 	"automatic-doodle/pkg/server"
 )
 
@@ -54,21 +61,36 @@ func Wire(db *ent.Client) *server.Server {
 	factoryFactory := factory.New(db, encryptionModule)
 	userFactory := factory2.New(db)
 	userRepository := repository2.New(db)
-	service3 := service2.New(serviceLogger, encryptionModule, serviceService, repositoryRepository, factoryFactory, userFactory, userRepository)
-	middlewareMiddleware := middleware.New(middlewareLogger, service3)
+	service5 := service2.New(serviceLogger, encryptionModule, serviceService, repositoryRepository, factoryFactory, userFactory, userRepository)
+	middlewareMiddleware := middleware.New(middlewareLogger, service5)
 	restRest := rest.New(middlewareMiddleware)
 	restLogger := _wireLoggerValue7
-	rest3 := rest2.New(restLogger, service3, middlewareMiddleware)
-	routerRouter := router.New(restRest, rest3)
+	rest5 := rest2.New(restLogger, service5, middlewareMiddleware)
+	factory4 := factory3.New(db)
+	repository4 := repository3.New(db)
+	userService := service3.New(userRepository, userFactory, factory4, repository4)
+	logger3 := _wireLoggerValue8
+	rest6 := rest3.New(middlewareMiddleware, userService, logger3)
+	logger4 := _wireLoggerValue9
+	logger5 := _wireLoggerValue10
+	s3clientLogger := _wireLoggerValue11
+	s3clientService := s3client.New(s3clientLogger, configModule)
+	service6 := service4.New(logger5, repository4, factory4, s3clientService)
+	rest7 := rest4.New(logger4, service6, middlewareMiddleware)
+	routerRouter := router.New(restRest, rest5, rest6, rest7)
 	serverServer := server.New(configModule, serverLogger, routerRouter)
 	return serverServer
 }
 
 var (
-	_wireLoggerValue2 = logger.New("ServerModule")
-	_wireLoggerValue3 = logger.New("Authentication Middleware Logger")
-	_wireLoggerValue4 = logger.New("AuthenticationService")
-	_wireLoggerValue5 = logger.New("EncryptionModule")
-	_wireLoggerValue6 = logger.New("AccessTokenService")
-	_wireLoggerValue7 = logger.New("AuthRestLogger")
+	_wireLoggerValue2  = logger.New("ServerModule")
+	_wireLoggerValue3  = logger.New("Authentication Middleware Logger")
+	_wireLoggerValue4  = logger.New("AuthenticationService")
+	_wireLoggerValue5  = logger.New("EncryptionModule")
+	_wireLoggerValue6  = logger.New("AccessTokenService")
+	_wireLoggerValue7  = logger.New("AuthRestLogger")
+	_wireLoggerValue8  = logger.New("logger")
+	_wireLoggerValue9  = logger.New("FileRest")
+	_wireLoggerValue10 = logger.New("FileService")
+	_wireLoggerValue11 = logger.New("S3Client")
 )

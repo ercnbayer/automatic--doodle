@@ -4,7 +4,8 @@ import (
 	authenticationMiddleware "automatic-doodle/modules/auth/middleware"
 	authRest "automatic-doodle/modules/auth/rest"
 	authService "automatic-doodle/modules/auth/service"
-	pp_rest "automatic-doodle/modules/profile_photo/rest"
+	FileRest "automatic-doodle/modules/file/rest"
+	ProfileRest "automatic-doodle/modules/profile/rest"
 	"automatic-doodle/modules/router"
 	userRest "automatic-doodle/modules/user/rest"
 	"automatic-doodle/pkg/logger"
@@ -34,10 +35,13 @@ var (
 			new(*authenticationMiddleware.Middleware),
 		),
 		wire.Bind(new(authRest.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
-		wire.Bind(new(pp_rest.AuthMiddleware), new(*authenticationMiddleware.Middleware)),
+		wire.Bind(new(ProfileRest.AuthMiddleware), new(*authenticationMiddleware.Middleware)),
+		wire.Bind(new(FileRest.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
 
 		wire.InterfaceValue(new(authenticationMiddleware.Logger), logger.New("Authentication Middleware Logger")),
 	)
-	AuthenticationRestProviderSet wire.ProviderSet = wire.NewSet(authRest.New, wire.Bind(new(router.AuthHandler), new(*authRest.Rest)),
+	AuthenticationRestProviderSet wire.ProviderSet = wire.NewSet(authRest.New,
+		wire.Bind(new(router.AuthHandler), new(*authRest.Rest)),
+
 		wire.InterfaceValue(new(authRest.Logger), logger.New("AuthRestLogger")))
 )

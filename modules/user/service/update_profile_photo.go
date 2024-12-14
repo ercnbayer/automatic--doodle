@@ -47,7 +47,7 @@ func (svc *UserService) UpdateProfilePhoto(
 		return types.AuthenticatedUser{}, err
 	}
 
-	userItem, err := svc.userRepository.GetById(userId)
+	userItem, err := svc.userRepository.GetById(userId, context.Background())
 	if err != nil {
 		svc.logger.Error(
 			`Something went wrong during UpdateProfilePhoto->GetUserById: %w`,
