@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/predicate"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
@@ -163,6 +164,44 @@ func (uu *UserUpdate) AddRefreshTokens(r ...*RefreshToken) *UserUpdate {
 	return uu.AddRefreshTokenIDs(ids...)
 }
 
+// SetProfileImageID sets the "profile_image" edge to the File entity by ID.
+func (uu *UserUpdate) SetProfileImageID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetProfileImageID(id)
+	return uu
+}
+
+// SetNillableProfileImageID sets the "profile_image" edge to the File entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableProfileImageID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetProfileImageID(*id)
+	}
+	return uu
+}
+
+// SetProfileImage sets the "profile_image" edge to the File entity.
+func (uu *UserUpdate) SetProfileImage(f *File) *UserUpdate {
+	return uu.SetProfileImageID(f.ID)
+}
+
+// SetCoverImageID sets the "cover_image" edge to the File entity by ID.
+func (uu *UserUpdate) SetCoverImageID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetCoverImageID(id)
+	return uu
+}
+
+// SetNillableCoverImageID sets the "cover_image" edge to the File entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableCoverImageID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetCoverImageID(*id)
+	}
+	return uu
+}
+
+// SetCoverImage sets the "cover_image" edge to the File entity.
+func (uu *UserUpdate) SetCoverImage(f *File) *UserUpdate {
+	return uu.SetCoverImageID(f.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -187,6 +226,18 @@ func (uu *UserUpdate) RemoveRefreshTokens(r ...*RefreshToken) *UserUpdate {
 		ids[i] = r[i].ID
 	}
 	return uu.RemoveRefreshTokenIDs(ids...)
+}
+
+// ClearProfileImage clears the "profile_image" edge to the File entity.
+func (uu *UserUpdate) ClearProfileImage() *UserUpdate {
+	uu.mutation.ClearProfileImage()
+	return uu
+}
+
+// ClearCoverImage clears the "cover_image" edge to the File entity.
+func (uu *UserUpdate) ClearCoverImage() *UserUpdate {
+	uu.mutation.ClearCoverImage()
+	return uu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -354,6 +405,64 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.ProfileImageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ProfileImageTable,
+			Columns: []string{user.ProfileImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.ProfileImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ProfileImageTable,
+			Columns: []string{user.ProfileImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.CoverImageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.CoverImageTable,
+			Columns: []string{user.CoverImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CoverImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.CoverImageTable,
+			Columns: []string{user.CoverImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -507,6 +616,44 @@ func (uuo *UserUpdateOne) AddRefreshTokens(r ...*RefreshToken) *UserUpdateOne {
 	return uuo.AddRefreshTokenIDs(ids...)
 }
 
+// SetProfileImageID sets the "profile_image" edge to the File entity by ID.
+func (uuo *UserUpdateOne) SetProfileImageID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetProfileImageID(id)
+	return uuo
+}
+
+// SetNillableProfileImageID sets the "profile_image" edge to the File entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableProfileImageID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetProfileImageID(*id)
+	}
+	return uuo
+}
+
+// SetProfileImage sets the "profile_image" edge to the File entity.
+func (uuo *UserUpdateOne) SetProfileImage(f *File) *UserUpdateOne {
+	return uuo.SetProfileImageID(f.ID)
+}
+
+// SetCoverImageID sets the "cover_image" edge to the File entity by ID.
+func (uuo *UserUpdateOne) SetCoverImageID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetCoverImageID(id)
+	return uuo
+}
+
+// SetNillableCoverImageID sets the "cover_image" edge to the File entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCoverImageID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetCoverImageID(*id)
+	}
+	return uuo
+}
+
+// SetCoverImage sets the "cover_image" edge to the File entity.
+func (uuo *UserUpdateOne) SetCoverImage(f *File) *UserUpdateOne {
+	return uuo.SetCoverImageID(f.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -531,6 +678,18 @@ func (uuo *UserUpdateOne) RemoveRefreshTokens(r ...*RefreshToken) *UserUpdateOne
 		ids[i] = r[i].ID
 	}
 	return uuo.RemoveRefreshTokenIDs(ids...)
+}
+
+// ClearProfileImage clears the "profile_image" edge to the File entity.
+func (uuo *UserUpdateOne) ClearProfileImage() *UserUpdateOne {
+	uuo.mutation.ClearProfileImage()
+	return uuo
+}
+
+// ClearCoverImage clears the "cover_image" edge to the File entity.
+func (uuo *UserUpdateOne) ClearCoverImage() *UserUpdateOne {
+	uuo.mutation.ClearCoverImage()
+	return uuo
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -721,6 +880,64 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(refreshtoken.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.ProfileImageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ProfileImageTable,
+			Columns: []string{user.ProfileImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.ProfileImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ProfileImageTable,
+			Columns: []string{user.ProfileImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.CoverImageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.CoverImageTable,
+			Columns: []string{user.CoverImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CoverImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.CoverImageTable,
+			Columns: []string{user.CoverImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

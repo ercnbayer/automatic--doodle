@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/predicate"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
@@ -26,6 +27,9 @@ type UserQuery struct {
 	inters            []Interceptor
 	predicates        []predicate.User
 	withRefreshTokens *RefreshTokenQuery
+	withProfileImage  *FileQuery
+	withCoverImage    *FileQuery
+	withFKs           bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -77,6 +81,50 @@ func (uq *UserQuery) QueryRefreshTokens() *RefreshTokenQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(refreshtoken.Table, refreshtoken.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.RefreshTokensTable, user.RefreshTokensColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProfileImage chains the current query on the "profile_image" edge.
+func (uq *UserQuery) QueryProfileImage() *FileQuery {
+	query := (&FileClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, user.ProfileImageTable, user.ProfileImageColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCoverImage chains the current query on the "cover_image" edge.
+func (uq *UserQuery) QueryCoverImage() *FileQuery {
+	query := (&FileClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, user.CoverImageTable, user.CoverImageColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -277,6 +325,8 @@ func (uq *UserQuery) Clone() *UserQuery {
 		inters:            append([]Interceptor{}, uq.inters...),
 		predicates:        append([]predicate.User{}, uq.predicates...),
 		withRefreshTokens: uq.withRefreshTokens.Clone(),
+		withProfileImage:  uq.withProfileImage.Clone(),
+		withCoverImage:    uq.withCoverImage.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -291,6 +341,28 @@ func (uq *UserQuery) WithRefreshTokens(opts ...func(*RefreshTokenQuery)) *UserQu
 		opt(query)
 	}
 	uq.withRefreshTokens = query
+	return uq
+}
+
+// WithProfileImage tells the query-builder to eager-load the nodes that are connected to
+// the "profile_image" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithProfileImage(opts ...func(*FileQuery)) *UserQuery {
+	query := (&FileClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withProfileImage = query
+	return uq
+}
+
+// WithCoverImage tells the query-builder to eager-load the nodes that are connected to
+// the "cover_image" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithCoverImage(opts ...func(*FileQuery)) *UserQuery {
+	query := (&FileClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withCoverImage = query
 	return uq
 }
 
@@ -371,11 +443,20 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, error) {
 	var (
 		nodes       = []*User{}
+		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
 			uq.withRefreshTokens != nil,
+			uq.withProfileImage != nil,
+			uq.withCoverImage != nil,
 		}
 	)
+	if uq.withProfileImage != nil || uq.withCoverImage != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, user.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*User).scanValues(nil, columns)
 	}
@@ -398,6 +479,18 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadRefreshTokens(ctx, query, nodes,
 			func(n *User) { n.Edges.RefreshTokens = []*RefreshToken{} },
 			func(n *User, e *RefreshToken) { n.Edges.RefreshTokens = append(n.Edges.RefreshTokens, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withProfileImage; query != nil {
+		if err := uq.loadProfileImage(ctx, query, nodes, nil,
+			func(n *User, e *File) { n.Edges.ProfileImage = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withCoverImage; query != nil {
+		if err := uq.loadCoverImage(ctx, query, nodes, nil,
+			func(n *User, e *File) { n.Edges.CoverImage = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -431,6 +524,70 @@ func (uq *UserQuery) loadRefreshTokens(ctx context.Context, query *RefreshTokenQ
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadProfileImage(ctx context.Context, query *FileQuery, nodes []*User, init func(*User), assign func(*User, *File)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*User)
+	for i := range nodes {
+		if nodes[i].user_profile_image == nil {
+			continue
+		}
+		fk := *nodes[i].user_profile_image
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(file.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_profile_image" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadCoverImage(ctx context.Context, query *FileQuery, nodes []*User, init func(*User), assign func(*User, *File)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*User)
+	for i := range nodes {
+		if nodes[i].user_cover_image == nil {
+			continue
+		}
+		fk := *nodes[i].user_cover_image
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(file.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_cover_image" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

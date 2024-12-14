@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   localstack:
-    container_name: "arrndme_localstack"
+    container_name: "doodle_localstack"
     image: localstack/localstack
     ports:
       - "127.0.0.1:4566:4566"
@@ -21,13 +21,13 @@ services:
       - EDGE_PORT=4566
       - ENFORCE_IAM=1
     volumes:
-      - arrndme_localstack:/var/lib/localstack
+      - doodle_localstack:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
       - ./localstack/cors-config.json:/cors-config.json
       - ./localstack/entrypoint.sh:/etc/localstack/init/ready.d/init-aws.sh
 
   postgres:
-    container_name: arrndme_postgres
+    container_name: doodle_postgres
     image: postgres:15-alpine
     restart: always
     environment:
@@ -38,20 +38,20 @@ services:
     ports:
       - 5433:5432
     volumes:
-      - arrndme_postgres:/var/lib/postgresql/data
+      - doodle_postgres:/var/lib/postgresql/data
 
   redis:
-    container_name: arrndme_redis
+    container_name: doodle_redis
     image: redis:7-alpine
     restart: always
     volumes:
-      - arrndme_redis:/data
+      - doodle_redis:/data
       - ./tools/docker/redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
     ports:
       - 6379:6379
 
 volumes:
-  arrndme_postgres:
-  arrndme_localstack:
-  arrndme_redis:
+  doodle_postgres:
+  doodle_localstack:
+  doodle_redis:

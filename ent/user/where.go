@@ -629,6 +629,52 @@ func HasRefreshTokensWith(preds ...predicate.RefreshToken) predicate.User {
 	})
 }
 
+// HasProfileImage applies the HasEdge predicate on the "profile_image" edge.
+func HasProfileImage() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, ProfileImageTable, ProfileImageColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProfileImageWith applies the HasEdge predicate on the "profile_image" edge with a given conditions (other predicates).
+func HasProfileImageWith(preds ...predicate.File) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newProfileImageStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCoverImage applies the HasEdge predicate on the "cover_image" edge.
+func HasCoverImage() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CoverImageTable, CoverImageColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCoverImageWith applies the HasEdge predicate on the "cover_image" edge with a given conditions (other predicates).
+func HasCoverImageWith(preds ...predicate.File) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCoverImageStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

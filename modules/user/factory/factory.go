@@ -19,8 +19,8 @@ func (f *UserFactory) Create(
 	email,
 	firstName,
 	lastName,
-
 	password string,
+
 	role user.Role,
 	state user.State,
 ) *ent.UserCreate {

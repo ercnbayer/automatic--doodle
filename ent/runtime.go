@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/schema"
 	"automatic-doodle/ent/user"
@@ -15,6 +16,94 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	fileFields := schema.File{}.Fields()
+	_ = fileFields
+	// fileDescFilename is the schema descriptor for filename field.
+	fileDescFilename := fileFields[1].Descriptor()
+	// file.FilenameValidator is a validator for the "filename" field. It is called by the builders before save.
+	file.FilenameValidator = func() func(string) error {
+		validators := fileDescFilename.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(filename string) error {
+			for _, fn := range fns {
+				if err := fn(filename); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// fileDescExtention is the schema descriptor for extention field.
+	fileDescExtention := fileFields[2].Descriptor()
+	// file.ExtentionValidator is a validator for the "extention" field. It is called by the builders before save.
+	file.ExtentionValidator = func() func(string) error {
+		validators := fileDescExtention.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(extention string) error {
+			for _, fn := range fns {
+				if err := fn(extention); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// fileDescCreatedAt is the schema descriptor for created_at field.
+	fileDescCreatedAt := fileFields[4].Descriptor()
+	// file.DefaultCreatedAt holds the default value on creation for the created_at field.
+	file.DefaultCreatedAt = fileDescCreatedAt.Default.(func() time.Time)
+	// fileDescBucket is the schema descriptor for bucket field.
+	fileDescBucket := fileFields[6].Descriptor()
+	// file.BucketValidator is a validator for the "bucket" field. It is called by the builders before save.
+	file.BucketValidator = func() func(string) error {
+		validators := fileDescBucket.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(bucket string) error {
+			for _, fn := range fns {
+				if err := fn(bucket); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// fileDescUpdatedAt is the schema descriptor for updated_at field.
+	fileDescUpdatedAt := fileFields[7].Descriptor()
+	// file.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	file.DefaultUpdatedAt = fileDescUpdatedAt.Default.(func() time.Time)
+	// file.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	file.UpdateDefaultUpdatedAt = fileDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// fileDescContentType is the schema descriptor for content_type field.
+	fileDescContentType := fileFields[8].Descriptor()
+	// file.ContentTypeValidator is a validator for the "content_type" field. It is called by the builders before save.
+	file.ContentTypeValidator = func() func(string) error {
+		validators := fileDescContentType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(content_type string) error {
+			for _, fn := range fns {
+				if err := fn(content_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// fileDescID is the schema descriptor for id field.
+	fileDescID := fileFields[0].Descriptor()
+	// file.DefaultID holds the default value on creation for the id field.
+	file.DefaultID = fileDescID.Default.(func() uuid.UUID)
 	refreshtokenFields := schema.RefreshToken{}.Fields()
 	_ = refreshtokenFields
 	// refreshtokenDescToken is the schema descriptor for token field.

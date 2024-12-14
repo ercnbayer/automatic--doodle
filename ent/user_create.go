@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
 	"context"
@@ -125,6 +126,44 @@ func (uc *UserCreate) AddRefreshTokens(r ...*RefreshToken) *UserCreate {
 		ids[i] = r[i].ID
 	}
 	return uc.AddRefreshTokenIDs(ids...)
+}
+
+// SetProfileImageID sets the "profile_image" edge to the File entity by ID.
+func (uc *UserCreate) SetProfileImageID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetProfileImageID(id)
+	return uc
+}
+
+// SetNillableProfileImageID sets the "profile_image" edge to the File entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableProfileImageID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetProfileImageID(*id)
+	}
+	return uc
+}
+
+// SetProfileImage sets the "profile_image" edge to the File entity.
+func (uc *UserCreate) SetProfileImage(f *File) *UserCreate {
+	return uc.SetProfileImageID(f.ID)
+}
+
+// SetCoverImageID sets the "cover_image" edge to the File entity by ID.
+func (uc *UserCreate) SetCoverImageID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetCoverImageID(id)
+	return uc
+}
+
+// SetNillableCoverImageID sets the "cover_image" edge to the File entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableCoverImageID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetCoverImageID(*id)
+	}
+	return uc
+}
+
+// SetCoverImage sets the "cover_image" edge to the File entity.
+func (uc *UserCreate) SetCoverImage(f *File) *UserCreate {
+	return uc.SetCoverImageID(f.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -337,6 +376,40 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ProfileImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.ProfileImageTable,
+			Columns: []string{user.ProfileImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_profile_image = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.CoverImageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   user.CoverImageTable,
+			Columns: []string{user.CoverImageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_cover_image = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

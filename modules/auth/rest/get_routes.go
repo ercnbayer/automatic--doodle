@@ -15,5 +15,14 @@ func (r *Rest) GetRoutes() []types.HandlerItem {
 				r.loginUser,
 			},
 		},
+		{
+			Path:   "/auth/register",
+			Method: "POST",
+			Handler: []func(*fiber.Ctx) error{
+
+				r.Register,
+			},
+		},
 	}
+
 }

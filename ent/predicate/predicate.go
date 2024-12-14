@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// File is the predicate function for file builders.
+type File func(*sql.Selector)
+
 // RefreshToken is the predicate function for refreshtoken builders.
 type RefreshToken func(*sql.Selector)
 

@@ -16,7 +16,7 @@ type Logger interface {
 
 type AuthenticationService interface {
 	Login(*types.LoginRequest) (types.TokenResponse, error)
-	//Register(*types.RegisterRequest) (types.TokenResponse,error)
+	Register(*types.RegisterRequest) (types.TokenResponse, error)
 }
 
 type AuthenticationMiddleware interface {

@@ -38,6 +38,10 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeRefreshTokens holds the string denoting the refresh_tokens edge name in mutations.
 	EdgeRefreshTokens = "refresh_tokens"
+	// EdgeProfileImage holds the string denoting the profile_image edge name in mutations.
+	EdgeProfileImage = "profile_image"
+	// EdgeCoverImage holds the string denoting the cover_image edge name in mutations.
+	EdgeCoverImage = "cover_image"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RefreshTokensTable is the table that holds the refresh_tokens relation/edge.
@@ -47,6 +51,20 @@ const (
 	RefreshTokensInverseTable = "refresh_tokens"
 	// RefreshTokensColumn is the table column denoting the refresh_tokens relation/edge.
 	RefreshTokensColumn = "user_id"
+	// ProfileImageTable is the table that holds the profile_image relation/edge.
+	ProfileImageTable = "users"
+	// ProfileImageInverseTable is the table name for the File entity.
+	// It exists in this package in order to avoid circular dependency with the "file" package.
+	ProfileImageInverseTable = "files"
+	// ProfileImageColumn is the table column denoting the profile_image relation/edge.
+	ProfileImageColumn = "user_profile_image"
+	// CoverImageTable is the table that holds the cover_image relation/edge.
+	CoverImageTable = "users"
+	// CoverImageInverseTable is the table name for the File entity.
+	// It exists in this package in order to avoid circular dependency with the "file" package.
+	CoverImageInverseTable = "files"
+	// CoverImageColumn is the table column denoting the cover_image relation/edge.
+	CoverImageColumn = "user_cover_image"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -64,10 +82,22 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "users"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"user_profile_image",
+	"user_cover_image",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -214,10 +244,38 @@ func ByRefreshTokens(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRefreshTokensStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByProfileImageField orders the results by profile_image field.
+func ByProfileImageField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProfileImageStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCoverImageField orders the results by cover_image field.
+func ByCoverImageField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCoverImageStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newRefreshTokensStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RefreshTokensInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RefreshTokensTable, RefreshTokensColumn),
+	)
+}
+func newProfileImageStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProfileImageInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, ProfileImageTable, ProfileImageColumn),
+	)
+}
+func newCoverImageStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CoverImageInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, CoverImageTable, CoverImageColumn),
 	)
 }

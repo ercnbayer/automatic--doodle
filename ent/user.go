@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/user"
 	"fmt"
 	"strings"
@@ -40,17 +41,23 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges        UserEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges              UserEdges `json:"edges"`
+	user_profile_image *uuid.UUID
+	user_cover_image   *uuid.UUID
+	selectValues       sql.SelectValues
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
 	// RefreshTokens holds the value of the refresh_tokens edge.
 	RefreshTokens []*RefreshToken `json:"refresh_tokens,omitempty"`
+	// ProfileImage holds the value of the profile_image edge.
+	ProfileImage *File `json:"profile_image,omitempty"`
+	// CoverImage holds the value of the cover_image edge.
+	CoverImage *File `json:"cover_image,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // RefreshTokensOrErr returns the RefreshTokens value or an error if the edge
@@ -60,6 +67,28 @@ func (e UserEdges) RefreshTokensOrErr() ([]*RefreshToken, error) {
 		return e.RefreshTokens, nil
 	}
 	return nil, &NotLoadedError{edge: "refresh_tokens"}
+}
+
+// ProfileImageOrErr returns the ProfileImage value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) ProfileImageOrErr() (*File, error) {
+	if e.ProfileImage != nil {
+		return e.ProfileImage, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: file.Label}
+	}
+	return nil, &NotLoadedError{edge: "profile_image"}
+}
+
+// CoverImageOrErr returns the CoverImage value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) CoverImageOrErr() (*File, error) {
+	if e.CoverImage != nil {
+		return e.CoverImage, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: file.Label}
+	}
+	return nil, &NotLoadedError{edge: "cover_image"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -73,6 +102,10 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
+		case user.ForeignKeys[0]: // user_profile_image
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case user.ForeignKeys[1]: // user_cover_image
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -154,6 +187,20 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.UpdatedAt = value.Time
 			}
+		case user.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field user_profile_image", values[i])
+			} else if value.Valid {
+				u.user_profile_image = new(uuid.UUID)
+				*u.user_profile_image = *value.S.(*uuid.UUID)
+			}
+		case user.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field user_cover_image", values[i])
+			} else if value.Valid {
+				u.user_cover_image = new(uuid.UUID)
+				*u.user_cover_image = *value.S.(*uuid.UUID)
+			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -170,6 +217,16 @@ func (u *User) Value(name string) (ent.Value, error) {
 // QueryRefreshTokens queries the "refresh_tokens" edge of the User entity.
 func (u *User) QueryRefreshTokens() *RefreshTokenQuery {
 	return NewUserClient(u.config).QueryRefreshTokens(u)
+}
+
+// QueryProfileImage queries the "profile_image" edge of the User entity.
+func (u *User) QueryProfileImage() *FileQuery {
+	return NewUserClient(u.config).QueryProfileImage(u)
+}
+
+// QueryCoverImage queries the "cover_image" edge of the User entity.
+func (u *User) QueryCoverImage() *FileQuery {
+	return NewUserClient(u.config).QueryCoverImage(u)
 }
 
 // Update returns a builder for updating this User.

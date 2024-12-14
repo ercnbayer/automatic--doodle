@@ -9,3 +9,9 @@ type UserHandler interface {
 type AuthHandler interface {
 	GetRoutes() []types.HandlerItem
 }
+type Profile_PhotoHandler interface {
+	GetRoutes() []types.HandlerItem
+}
+type FileHandler interface {
+	GetRoutes() []types.HandlerItem
+}

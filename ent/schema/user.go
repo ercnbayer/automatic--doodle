@@ -57,6 +57,10 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("refresh_tokens", RefreshToken.Type),
+		edge.To("profile_image", File.Type).
+			Unique(),
+		edge.To("cover_image", File.Type).
+			Unique(),
 	}
 
 }

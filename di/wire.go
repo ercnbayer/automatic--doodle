@@ -32,6 +32,11 @@ func Wire(
 		AuthenticationMiddlewareProviderSet,
 		UserRestProviderSet,
 		AuthenticationRestProviderSet,
+		FileFactoryProvider,
+		FileRepositoryProvider,
+		FileServiceProviderSet,
+		S3ClientProviderSet,
+		ProfilePhotoRestProvider,
 		RouterProviderSet,
 		ServerProviderSet,
 	))
