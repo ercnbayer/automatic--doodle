@@ -3,7 +3,8 @@ package rest
 import (
 	"automatic-doodle/pkg/validator"
 
-	"github.com/Wodemy-Labs/arrnd.me-api/types"
+	"automatic-doodle/types"
+
 	"github.com/gofiber/fiber/v2"
 )
 
