@@ -4,6 +4,7 @@ package ent
 
 import (
 	"automatic-doodle/ent/file"
+	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/schema"
 	"automatic-doodle/ent/user"
@@ -104,6 +105,56 @@ func init() {
 	fileDescID := fileFields[0].Descriptor()
 	// file.DefaultID holds the default value on creation for the id field.
 	file.DefaultID = fileDescID.Default.(func() uuid.UUID)
+	jobFields := schema.Job{}.Fields()
+	_ = jobFields
+	// jobDescCreatedAt is the schema descriptor for created_at field.
+	jobDescCreatedAt := jobFields[1].Descriptor()
+	// job.DefaultCreatedAt holds the default value on creation for the created_at field.
+	job.DefaultCreatedAt = jobDescCreatedAt.Default.(func() time.Time)
+	// jobDescFee is the schema descriptor for fee field.
+	jobDescFee := jobFields[4].Descriptor()
+	// job.FeeValidator is a validator for the "fee" field. It is called by the builders before save.
+	job.FeeValidator = jobDescFee.Validators[0].(func(int) error)
+	// jobDescJobType is the schema descriptor for job_type field.
+	jobDescJobType := jobFields[5].Descriptor()
+	// job.JobTypeValidator is a validator for the "job_type" field. It is called by the builders before save.
+	job.JobTypeValidator = func() func(string) error {
+		validators := jobDescJobType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(job_type string) error {
+			for _, fn := range fns {
+				if err := fn(job_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// jobDescDescription is the schema descriptor for description field.
+	jobDescDescription := jobFields[6].Descriptor()
+	// job.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	job.DescriptionValidator = func() func(string) error {
+		validators := jobDescDescription.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(description string) error {
+			for _, fn := range fns {
+				if err := fn(description); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// jobDescID is the schema descriptor for id field.
+	jobDescID := jobFields[0].Descriptor()
+	// job.DefaultID holds the default value on creation for the id field.
+	job.DefaultID = jobDescID.Default.(func() uuid.UUID)
 	refreshtokenFields := schema.RefreshToken{}.Fields()
 	_ = refreshtokenFields
 	// refreshtokenDescToken is the schema descriptor for token field.

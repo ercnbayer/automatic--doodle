@@ -1,6 +1,9 @@
 package main
 
-import "automatic-doodle/di"
+import (
+	"automatic-doodle/di"
+	_ "automatic-doodle/ent/runtime"
+)
 
 func main() {
 	db := di.DBBuilder()

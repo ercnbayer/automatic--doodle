@@ -28,3 +28,19 @@ func AuthenticatedUserFromUser(u *ent.User) AuthenticatedUser {
 		State:        u.State,
 	}
 }
+
+type UserPublicDetails struct {
+	Id           uuid.UUID    `json:"id"`
+	FirstName    string       `json:"publisherfirstName"`
+	LastName     string       `json:"lastName"`
+	ProfilePhoto FileResponse `json:"profilePhoto"`
+}
+
+func UserPublicDetailsFromUser(u AuthenticatedUser) UserPublicDetails {
+	return UserPublicDetails{
+		Id:           u.Id,
+		FirstName:    u.FirstName,
+		LastName:     u.LastName,
+		ProfilePhoto: u.ProfilePhoto,
+	}
+}

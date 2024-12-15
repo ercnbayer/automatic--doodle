@@ -4,6 +4,7 @@ package ent
 
 import (
 	"automatic-doodle/ent/file"
+	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
 	"context"
@@ -164,6 +165,21 @@ func (uc *UserCreate) SetNillableCoverImageID(id *uuid.UUID) *UserCreate {
 // SetCoverImage sets the "cover_image" edge to the File entity.
 func (uc *UserCreate) SetCoverImage(f *File) *UserCreate {
 	return uc.SetCoverImageID(f.ID)
+}
+
+// AddJobIDs adds the "jobs" edge to the Job entity by IDs.
+func (uc *UserCreate) AddJobIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddJobIDs(ids...)
+	return uc
+}
+
+// AddJobs adds the "jobs" edges to the Job entity.
+func (uc *UserCreate) AddJobs(j ...*Job) *UserCreate {
+	ids := make([]uuid.UUID, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return uc.AddJobIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -410,6 +426,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_cover_image = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.JobsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.JobsTable,
+			Columns: []string{user.JobsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(job.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

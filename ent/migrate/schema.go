@@ -26,6 +26,31 @@ var (
 		Columns:    FilesColumns,
 		PrimaryKey: []*schema.Column{FilesColumns[0]},
 	}
+	// JobsColumns holds the columns for the "jobs" table.
+	JobsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "start_date", Type: field.TypeTime, Nullable: true},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "fee", Type: field.TypeInt},
+		{Name: "job_type", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString, Size: 1024},
+		{Name: "user_jobs", Type: field.TypeUUID},
+	}
+	// JobsTable holds the schema information for the "jobs" table.
+	JobsTable = &schema.Table{
+		Name:       "jobs",
+		Columns:    JobsColumns,
+		PrimaryKey: []*schema.Column{JobsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "jobs_users_jobs",
+				Columns:    []*schema.Column{JobsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// RefreshTokensColumns holds the columns for the "refresh_tokens" table.
 	RefreshTokensColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -89,12 +114,14 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		FilesTable,
+		JobsTable,
 		RefreshTokensTable,
 		UsersTable,
 	}
 )
 
 func init() {
+	JobsTable.ForeignKeys[0].RefTable = UsersTable
 	RefreshTokensTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = FilesTable
 	UsersTable.ForeignKeys[1].RefTable = FilesTable

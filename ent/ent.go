@@ -4,6 +4,7 @@ package ent
 
 import (
 	"automatic-doodle/ent/file"
+	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
 	"context"
@@ -76,6 +77,7 @@ func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			file.Table:         file.ValidColumn,
+			job.Table:          job.ValidColumn,
 			refreshtoken.Table: refreshtoken.ValidColumn,
 			user.Table:         user.ValidColumn,
 		})

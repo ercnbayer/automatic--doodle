@@ -16,6 +16,9 @@ import (
 	repository3 "automatic-doodle/modules/file/repository"
 	rest4 "automatic-doodle/modules/file/rest"
 	service4 "automatic-doodle/modules/file/service"
+	factory4 "automatic-doodle/modules/job/factory"
+	repository4 "automatic-doodle/modules/job/repository"
+	rest5 "automatic-doodle/modules/job/rest"
 	rest3 "automatic-doodle/modules/profile/rest"
 	"automatic-doodle/modules/refresh-token/factory"
 	"automatic-doodle/modules/refresh-token/repository"
@@ -65,19 +68,23 @@ func Wire(db *ent.Client) *server.Server {
 	middlewareMiddleware := middleware.New(middlewareLogger, service5)
 	restRest := rest.New(middlewareMiddleware)
 	restLogger := _wireLoggerValue7
-	rest5 := rest2.New(restLogger, service5, middlewareMiddleware)
-	factory4 := factory3.New(db)
-	repository4 := repository3.New(db)
-	userService := service3.New(userRepository, userFactory, factory4, repository4)
+	rest6 := rest2.New(restLogger, service5, middlewareMiddleware)
+	factory5 := factory3.New(db)
+	repository5 := repository3.New(db)
+	userService := service3.New(userRepository, userFactory, factory5, repository5)
 	logger3 := _wireLoggerValue8
-	rest6 := rest3.New(middlewareMiddleware, userService, logger3)
+	rest7 := rest3.New(middlewareMiddleware, userService, logger3)
 	logger4 := _wireLoggerValue9
 	logger5 := _wireLoggerValue10
 	s3clientLogger := _wireLoggerValue11
 	s3clientService := s3client.New(s3clientLogger, configModule)
-	service6 := service4.New(logger5, repository4, factory4, s3clientService)
-	rest7 := rest4.New(logger4, service6, middlewareMiddleware)
-	routerRouter := router.New(restRest, rest5, rest6, rest7)
+	service6 := service4.New(logger5, repository5, factory5, s3clientService)
+	rest8 := rest4.New(logger4, service6, middlewareMiddleware)
+	factory6 := factory4.New(db)
+	repository6 := repository4.New(db)
+	logger6 := _wireLoggerValue12
+	rest9 := rest5.New(middlewareMiddleware, factory6, repository6, logger6)
+	routerRouter := router.New(restRest, rest6, rest7, rest8, rest9)
 	serverServer := server.New(configModule, serverLogger, routerRouter)
 	return serverServer
 }
@@ -93,4 +100,5 @@ var (
 	_wireLoggerValue9  = logger.New("FileRest")
 	_wireLoggerValue10 = logger.New("FileService")
 	_wireLoggerValue11 = logger.New("S3Client")
+	_wireLoggerValue12 = logger.New("JOB API LOGGER")
 )

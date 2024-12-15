@@ -61,6 +61,7 @@ func (User) Edges() []ent.Edge {
 			Unique(),
 		edge.To("cover_image", File.Type).
 			Unique(),
+		edge.To("jobs", Job.Type),
 	}
 
 }

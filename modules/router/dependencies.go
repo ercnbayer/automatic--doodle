@@ -15,3 +15,6 @@ type ProfileHandler interface {
 type FileHandler interface {
 	GetRoutes() []types.HandlerItem
 }
+type JobHandler interface {
+	GetRoutes() []types.HandlerItem
+}

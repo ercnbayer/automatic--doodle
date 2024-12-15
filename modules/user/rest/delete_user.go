@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// this is whole to do so dont care
 func (r *Rest) DeleteUser(c *fiber.Ctx) error {
 	pLocalUser := c.Locals("user")
 

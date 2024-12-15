@@ -42,6 +42,8 @@ const (
 	EdgeProfileImage = "profile_image"
 	// EdgeCoverImage holds the string denoting the cover_image edge name in mutations.
 	EdgeCoverImage = "cover_image"
+	// EdgeJobs holds the string denoting the jobs edge name in mutations.
+	EdgeJobs = "jobs"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RefreshTokensTable is the table that holds the refresh_tokens relation/edge.
@@ -65,6 +67,13 @@ const (
 	CoverImageInverseTable = "files"
 	// CoverImageColumn is the table column denoting the cover_image relation/edge.
 	CoverImageColumn = "user_cover_image"
+	// JobsTable is the table that holds the jobs relation/edge.
+	JobsTable = "jobs"
+	// JobsInverseTable is the table name for the Job entity.
+	// It exists in this package in order to avoid circular dependency with the "job" package.
+	JobsInverseTable = "jobs"
+	// JobsColumn is the table column denoting the jobs relation/edge.
+	JobsColumn = "user_jobs"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -258,6 +267,20 @@ func ByCoverImageField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCoverImageStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByJobsCount orders the results by jobs count.
+func ByJobsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newJobsStep(), opts...)
+	}
+}
+
+// ByJobs orders the results by jobs terms.
+func ByJobs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newJobsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newRefreshTokensStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -277,5 +300,12 @@ func newCoverImageStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CoverImageInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, CoverImageTable, CoverImageColumn),
+	)
+}
+func newJobsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(JobsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, JobsTable, JobsColumn),
 	)
 }
