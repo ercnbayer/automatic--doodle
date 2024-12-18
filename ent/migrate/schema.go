@@ -55,8 +55,9 @@ var (
 	JobApplicationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "description", Type: field.TypeString, Size: 1024},
-		{Name: "job_job_applications", Type: field.TypeUUID},
-		{Name: "user_job_applications", Type: field.TypeUUID},
+		{Name: "file_id", Type: field.TypeUUID},
+		{Name: "job_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// JobApplicationsTable holds the schema information for the "job_applications" table.
 	JobApplicationsTable = &schema.Table{
@@ -65,14 +66,20 @@ var (
 		PrimaryKey: []*schema.Column{JobApplicationsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "job_applications_jobs_job_applications",
+				Symbol:     "job_applications_files_jobappl",
 				Columns:    []*schema.Column{JobApplicationsColumns[2]},
+				RefColumns: []*schema.Column{FilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "job_applications_jobs_jobappl",
+				Columns:    []*schema.Column{JobApplicationsColumns[3]},
 				RefColumns: []*schema.Column{JobsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "job_applications_users_job_applications",
-				Columns:    []*schema.Column{JobApplicationsColumns[3]},
+				Symbol:     "job_applications_users_jobappl",
+				Columns:    []*schema.Column{JobApplicationsColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -150,8 +157,9 @@ var (
 
 func init() {
 	JobsTable.ForeignKeys[0].RefTable = UsersTable
-	JobApplicationsTable.ForeignKeys[0].RefTable = JobsTable
-	JobApplicationsTable.ForeignKeys[1].RefTable = UsersTable
+	JobApplicationsTable.ForeignKeys[0].RefTable = FilesTable
+	JobApplicationsTable.ForeignKeys[1].RefTable = JobsTable
+	JobApplicationsTable.ForeignKeys[2].RefTable = UsersTable
 	RefreshTokensTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = FilesTable
 	UsersTable.ForeignKeys[1].RefTable = FilesTable

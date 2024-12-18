@@ -419,21 +419,21 @@ func HasUserWith(preds ...predicate.User) predicate.Job {
 	})
 }
 
-// HasJobApplications applies the HasEdge predicate on the "job_applications" edge.
-func HasJobApplications() predicate.Job {
+// HasJobappl applies the HasEdge predicate on the "jobappl" edge.
+func HasJobappl() predicate.Job {
 	return predicate.Job(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, JobApplicationsTable, JobApplicationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, JobapplTable, JobapplColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasJobApplicationsWith applies the HasEdge predicate on the "job_applications" edge with a given conditions (other predicates).
-func HasJobApplicationsWith(preds ...predicate.JobApplication) predicate.Job {
+// HasJobapplWith applies the HasEdge predicate on the "jobappl" edge with a given conditions (other predicates).
+func HasJobapplWith(preds ...predicate.JobApplication) predicate.Job {
 	return predicate.Job(func(s *sql.Selector) {
-		step := newJobApplicationsStep()
+		step := newJobapplStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

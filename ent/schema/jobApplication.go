@@ -34,18 +34,18 @@ func (JobApplication) Edges() []ent.Edge {
 		edge.From("user", User.Type).
 			Ref("jobappl").
 			Field("user_id"). // Foreign key
-			Required(),
+			Required().Unique(),
 
 		// Job edge: connecting job application with job
 		edge.From("job", Job.Type).
 			Ref("jobappl").
 			Field("job_id"). // Foreign key
-			Required(),
+			Required().Unique(),
 
 		// File edge: connecting job application with file
 		edge.From("file", File.Type).
 			Ref("jobappl").
 			Field("file_id"). // Foreign key
-			Required(),
+			Required().Unique(),
 	}
 }

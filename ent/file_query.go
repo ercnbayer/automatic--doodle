@@ -4,8 +4,10 @@ package ent
 
 import (
 	"automatic-doodle/ent/file"
+	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/predicate"
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -19,10 +21,11 @@ import (
 // FileQuery is the builder for querying File entities.
 type FileQuery struct {
 	config
-	ctx        *QueryContext
-	order      []file.OrderOption
-	inters     []Interceptor
-	predicates []predicate.File
+	ctx         *QueryContext
+	order       []file.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.File
+	withJobappl *JobApplicationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +60,28 @@ func (fq *FileQuery) Unique(unique bool) *FileQuery {
 func (fq *FileQuery) Order(o ...file.OrderOption) *FileQuery {
 	fq.order = append(fq.order, o...)
 	return fq
+}
+
+// QueryJobappl chains the current query on the "jobappl" edge.
+func (fq *FileQuery) QueryJobappl() *JobApplicationQuery {
+	query := (&JobApplicationClient{config: fq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, selector),
+			sqlgraph.To(jobapplication.Table, jobapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, file.JobapplTable, file.JobapplColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first File entity from the query.
@@ -246,15 +271,27 @@ func (fq *FileQuery) Clone() *FileQuery {
 		return nil
 	}
 	return &FileQuery{
-		config:     fq.config,
-		ctx:        fq.ctx.Clone(),
-		order:      append([]file.OrderOption{}, fq.order...),
-		inters:     append([]Interceptor{}, fq.inters...),
-		predicates: append([]predicate.File{}, fq.predicates...),
+		config:      fq.config,
+		ctx:         fq.ctx.Clone(),
+		order:       append([]file.OrderOption{}, fq.order...),
+		inters:      append([]Interceptor{}, fq.inters...),
+		predicates:  append([]predicate.File{}, fq.predicates...),
+		withJobappl: fq.withJobappl.Clone(),
 		// clone intermediate query.
 		sql:  fq.sql.Clone(),
 		path: fq.path,
 	}
+}
+
+// WithJobappl tells the query-builder to eager-load the nodes that are connected to
+// the "jobappl" edge. The optional arguments are used to configure the query builder of the edge.
+func (fq *FileQuery) WithJobappl(opts ...func(*JobApplicationQuery)) *FileQuery {
+	query := (&JobApplicationClient{config: fq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withJobappl = query
+	return fq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -333,8 +370,11 @@ func (fq *FileQuery) prepareQuery(ctx context.Context) error {
 
 func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, error) {
 	var (
-		nodes = []*File{}
-		_spec = fq.querySpec()
+		nodes       = []*File{}
+		_spec       = fq.querySpec()
+		loadedTypes = [1]bool{
+			fq.withJobappl != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*File).scanValues(nil, columns)
@@ -342,6 +382,7 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &File{config: fq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -353,7 +394,45 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := fq.withJobappl; query != nil {
+		if err := fq.loadJobappl(ctx, query, nodes,
+			func(n *File) { n.Edges.Jobappl = []*JobApplication{} },
+			func(n *File, e *JobApplication) { n.Edges.Jobappl = append(n.Edges.Jobappl, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (fq *FileQuery) loadJobappl(ctx context.Context, query *JobApplicationQuery, nodes []*File, init func(*File), assign func(*File, *JobApplication)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*File)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(jobapplication.FieldFileID)
+	}
+	query.Where(predicate.JobApplication(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(file.JobapplColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.FileID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "file_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (fq *FileQuery) sqlCount(ctx context.Context) (int, error) {

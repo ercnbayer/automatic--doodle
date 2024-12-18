@@ -15,50 +15,56 @@ const (
 	FieldID = "id"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// EdgeUsers holds the string denoting the users edge name in mutations.
-	EdgeUsers = "users"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
+	// FieldJobID holds the string denoting the job_id field in the database.
+	FieldJobID = "job_id"
+	// FieldFileID holds the string denoting the file_id field in the database.
+	FieldFileID = "file_id"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
 	// EdgeJob holds the string denoting the job edge name in mutations.
 	EdgeJob = "job"
+	// EdgeFile holds the string denoting the file edge name in mutations.
+	EdgeFile = "file"
 	// Table holds the table name of the jobapplication in the database.
 	Table = "job_applications"
-	// UsersTable is the table that holds the users relation/edge.
-	UsersTable = "job_applications"
-	// UsersInverseTable is the table name for the User entity.
+	// UserTable is the table that holds the user relation/edge.
+	UserTable = "job_applications"
+	// UserInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UsersInverseTable = "users"
-	// UsersColumn is the table column denoting the users relation/edge.
-	UsersColumn = "user_job_applications"
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_id"
 	// JobTable is the table that holds the job relation/edge.
 	JobTable = "job_applications"
 	// JobInverseTable is the table name for the Job entity.
 	// It exists in this package in order to avoid circular dependency with the "job" package.
 	JobInverseTable = "jobs"
 	// JobColumn is the table column denoting the job relation/edge.
-	JobColumn = "job_job_applications"
+	JobColumn = "job_id"
+	// FileTable is the table that holds the file relation/edge.
+	FileTable = "job_applications"
+	// FileInverseTable is the table name for the File entity.
+	// It exists in this package in order to avoid circular dependency with the "file" package.
+	FileInverseTable = "files"
+	// FileColumn is the table column denoting the file relation/edge.
+	FileColumn = "file_id"
 )
 
 // Columns holds all SQL columns for jobapplication fields.
 var Columns = []string{
 	FieldID,
 	FieldDescription,
-}
-
-// ForeignKeys holds the SQL foreign-keys that are owned by the "job_applications"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"job_job_applications",
-	"user_job_applications",
+	FieldUserID,
+	FieldJobID,
+	FieldFileID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -85,10 +91,25 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
-// ByUsersField orders the results by users field.
-func ByUsersField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByJobID orders the results by the job_id field.
+func ByJobID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJobID, opts...).ToFunc()
+}
+
+// ByFileID orders the results by the file_id field.
+func ByFileID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFileID, opts...).ToFunc()
+}
+
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUsersStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -98,11 +119,18 @@ func ByJobField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newJobStep(), sql.OrderByField(field, opts...))
 	}
 }
-func newUsersStep() *sqlgraph.Step {
+
+// ByFileField orders the results by file field.
+func ByFileField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFileStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UsersInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, UsersTable, UsersColumn),
+		sqlgraph.To(UserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
 	)
 }
 func newJobStep() *sqlgraph.Step {
@@ -110,5 +138,12 @@ func newJobStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(JobInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, JobTable, JobColumn),
+	)
+}
+func newFileStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FileInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, FileTable, FileColumn),
 	)
 }

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"automatic-doodle/ent/file"
+	"automatic-doodle/ent/jobapplication"
 	"context"
 	"errors"
 	"fmt"
@@ -97,6 +98,21 @@ func (fc *FileCreate) SetNillableID(u *uuid.UUID) *FileCreate {
 		fc.SetID(*u)
 	}
 	return fc
+}
+
+// AddJobapplIDs adds the "jobappl" edge to the JobApplication entity by IDs.
+func (fc *FileCreate) AddJobapplIDs(ids ...uuid.UUID) *FileCreate {
+	fc.mutation.AddJobapplIDs(ids...)
+	return fc
+}
+
+// AddJobappl adds the "jobappl" edges to the JobApplication entity.
+func (fc *FileCreate) AddJobappl(j ...*JobApplication) *FileCreate {
+	ids := make([]uuid.UUID, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return fc.AddJobapplIDs(ids...)
 }
 
 // Mutation returns the FileMutation object of the builder.
@@ -265,6 +281,22 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 	if value, ok := fc.mutation.ContentType(); ok {
 		_spec.SetField(file.FieldContentType, field.TypeString, value)
 		_node.ContentType = value
+	}
+	if nodes := fc.mutation.JobapplIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.JobapplTable,
+			Columns: []string{file.JobapplColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(jobapplication.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

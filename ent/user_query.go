@@ -24,16 +24,16 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx                 *QueryContext
-	order               []user.OrderOption
-	inters              []Interceptor
-	predicates          []predicate.User
-	withRefreshTokens   *RefreshTokenQuery
-	withProfileImage    *FileQuery
-	withCoverImage      *FileQuery
-	withJobs            *JobQuery
-	withJobApplications *JobApplicationQuery
-	withFKs             bool
+	ctx               *QueryContext
+	order             []user.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.User
+	withRefreshTokens *RefreshTokenQuery
+	withProfileImage  *FileQuery
+	withCoverImage    *FileQuery
+	withJobs          *JobQuery
+	withJobappl       *JobApplicationQuery
+	withFKs           bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -158,8 +158,8 @@ func (uq *UserQuery) QueryJobs() *JobQuery {
 	return query
 }
 
-// QueryJobApplications chains the current query on the "job_applications" edge.
-func (uq *UserQuery) QueryJobApplications() *JobApplicationQuery {
+// QueryJobappl chains the current query on the "jobappl" edge.
+func (uq *UserQuery) QueryJobappl() *JobApplicationQuery {
 	query := (&JobApplicationClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
@@ -172,7 +172,7 @@ func (uq *UserQuery) QueryJobApplications() *JobApplicationQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(jobapplication.Table, jobapplication.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.JobApplicationsTable, user.JobApplicationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.JobapplTable, user.JobapplColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -367,16 +367,16 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:              uq.config,
-		ctx:                 uq.ctx.Clone(),
-		order:               append([]user.OrderOption{}, uq.order...),
-		inters:              append([]Interceptor{}, uq.inters...),
-		predicates:          append([]predicate.User{}, uq.predicates...),
-		withRefreshTokens:   uq.withRefreshTokens.Clone(),
-		withProfileImage:    uq.withProfileImage.Clone(),
-		withCoverImage:      uq.withCoverImage.Clone(),
-		withJobs:            uq.withJobs.Clone(),
-		withJobApplications: uq.withJobApplications.Clone(),
+		config:            uq.config,
+		ctx:               uq.ctx.Clone(),
+		order:             append([]user.OrderOption{}, uq.order...),
+		inters:            append([]Interceptor{}, uq.inters...),
+		predicates:        append([]predicate.User{}, uq.predicates...),
+		withRefreshTokens: uq.withRefreshTokens.Clone(),
+		withProfileImage:  uq.withProfileImage.Clone(),
+		withCoverImage:    uq.withCoverImage.Clone(),
+		withJobs:          uq.withJobs.Clone(),
+		withJobappl:       uq.withJobappl.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -427,14 +427,14 @@ func (uq *UserQuery) WithJobs(opts ...func(*JobQuery)) *UserQuery {
 	return uq
 }
 
-// WithJobApplications tells the query-builder to eager-load the nodes that are connected to
-// the "job_applications" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithJobApplications(opts ...func(*JobApplicationQuery)) *UserQuery {
+// WithJobappl tells the query-builder to eager-load the nodes that are connected to
+// the "jobappl" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithJobappl(opts ...func(*JobApplicationQuery)) *UserQuery {
 	query := (&JobApplicationClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withJobApplications = query
+	uq.withJobappl = query
 	return uq
 }
 
@@ -522,7 +522,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			uq.withProfileImage != nil,
 			uq.withCoverImage != nil,
 			uq.withJobs != nil,
-			uq.withJobApplications != nil,
+			uq.withJobappl != nil,
 		}
 	)
 	if uq.withProfileImage != nil || uq.withCoverImage != nil {
@@ -575,10 +575,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
-	if query := uq.withJobApplications; query != nil {
-		if err := uq.loadJobApplications(ctx, query, nodes,
-			func(n *User) { n.Edges.JobApplications = []*JobApplication{} },
-			func(n *User, e *JobApplication) { n.Edges.JobApplications = append(n.Edges.JobApplications, e) }); err != nil {
+	if query := uq.withJobappl; query != nil {
+		if err := uq.loadJobappl(ctx, query, nodes,
+			func(n *User) { n.Edges.Jobappl = []*JobApplication{} },
+			func(n *User, e *JobApplication) { n.Edges.Jobappl = append(n.Edges.Jobappl, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -710,7 +710,7 @@ func (uq *UserQuery) loadJobs(ctx context.Context, query *JobQuery, nodes []*Use
 	}
 	return nil
 }
-func (uq *UserQuery) loadJobApplications(ctx context.Context, query *JobApplicationQuery, nodes []*User, init func(*User), assign func(*User, *JobApplication)) error {
+func (uq *UserQuery) loadJobappl(ctx context.Context, query *JobApplicationQuery, nodes []*User, init func(*User), assign func(*User, *JobApplication)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
@@ -720,22 +720,21 @@ func (uq *UserQuery) loadJobApplications(ctx context.Context, query *JobApplicat
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(jobapplication.FieldUserID)
+	}
 	query.Where(predicate.JobApplication(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.JobApplicationsColumn), fks...))
+		s.Where(sql.InValues(s.C(user.JobapplColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_job_applications
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_job_applications" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.UserID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_job_applications" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

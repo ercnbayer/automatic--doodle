@@ -44,8 +44,8 @@ const (
 	EdgeCoverImage = "cover_image"
 	// EdgeJobs holds the string denoting the jobs edge name in mutations.
 	EdgeJobs = "jobs"
-	// EdgeJobApplications holds the string denoting the job_applications edge name in mutations.
-	EdgeJobApplications = "job_applications"
+	// EdgeJobappl holds the string denoting the jobappl edge name in mutations.
+	EdgeJobappl = "jobappl"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RefreshTokensTable is the table that holds the refresh_tokens relation/edge.
@@ -76,13 +76,13 @@ const (
 	JobsInverseTable = "jobs"
 	// JobsColumn is the table column denoting the jobs relation/edge.
 	JobsColumn = "user_jobs"
-	// JobApplicationsTable is the table that holds the job_applications relation/edge.
-	JobApplicationsTable = "job_applications"
-	// JobApplicationsInverseTable is the table name for the JobApplication entity.
+	// JobapplTable is the table that holds the jobappl relation/edge.
+	JobapplTable = "job_applications"
+	// JobapplInverseTable is the table name for the JobApplication entity.
 	// It exists in this package in order to avoid circular dependency with the "jobapplication" package.
-	JobApplicationsInverseTable = "job_applications"
-	// JobApplicationsColumn is the table column denoting the job_applications relation/edge.
-	JobApplicationsColumn = "user_job_applications"
+	JobapplInverseTable = "job_applications"
+	// JobapplColumn is the table column denoting the jobappl relation/edge.
+	JobapplColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -291,17 +291,17 @@ func ByJobs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByJobApplicationsCount orders the results by job_applications count.
-func ByJobApplicationsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByJobapplCount orders the results by jobappl count.
+func ByJobapplCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newJobApplicationsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newJobapplStep(), opts...)
 	}
 }
 
-// ByJobApplications orders the results by job_applications terms.
-func ByJobApplications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByJobappl orders the results by jobappl terms.
+func ByJobappl(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newJobApplicationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newJobapplStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newRefreshTokensStep() *sqlgraph.Step {
@@ -332,10 +332,10 @@ func newJobsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, JobsTable, JobsColumn),
 	)
 }
-func newJobApplicationsStep() *sqlgraph.Step {
+func newJobapplStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(JobApplicationsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, JobApplicationsTable, JobApplicationsColumn),
+		sqlgraph.To(JobapplInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, JobapplTable, JobapplColumn),
 	)
 }

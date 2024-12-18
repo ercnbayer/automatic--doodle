@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -31,8 +32,17 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldContentType holds the string denoting the content_type field in the database.
 	FieldContentType = "content_type"
+	// EdgeJobappl holds the string denoting the jobappl edge name in mutations.
+	EdgeJobappl = "jobappl"
 	// Table holds the table name of the file in the database.
 	Table = "files"
+	// JobapplTable is the table that holds the jobappl relation/edge.
+	JobapplTable = "job_applications"
+	// JobapplInverseTable is the table name for the JobApplication entity.
+	// It exists in this package in order to avoid circular dependency with the "jobapplication" package.
+	JobapplInverseTable = "job_applications"
+	// JobapplColumn is the table column denoting the jobappl relation/edge.
+	JobapplColumn = "file_id"
 )
 
 // Columns holds all SQL columns for file fields.
@@ -147,4 +157,25 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByContentType orders the results by the content_type field.
 func ByContentType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldContentType, opts...).ToFunc()
+}
+
+// ByJobapplCount orders the results by jobappl count.
+func ByJobapplCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newJobapplStep(), opts...)
+	}
+}
+
+// ByJobappl orders the results by jobappl terms.
+func ByJobappl(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newJobapplStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newJobapplStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(JobapplInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, JobapplTable, JobapplColumn),
+	)
 }

@@ -347,6 +347,22 @@ func (c *FileClient) GetX(ctx context.Context, id uuid.UUID) *File {
 	return obj
 }
 
+// QueryJobappl queries the jobappl edge of a File.
+func (c *FileClient) QueryJobappl(f *File) *JobApplicationQuery {
+	query := (&JobApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(jobapplication.Table, jobapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, file.JobapplTable, file.JobapplColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
 	return c.hooks.File
@@ -496,15 +512,15 @@ func (c *JobClient) QueryUser(j *Job) *UserQuery {
 	return query
 }
 
-// QueryJobApplications queries the job_applications edge of a Job.
-func (c *JobClient) QueryJobApplications(j *Job) *JobApplicationQuery {
+// QueryJobappl queries the jobappl edge of a Job.
+func (c *JobClient) QueryJobappl(j *Job) *JobApplicationQuery {
 	query := (&JobApplicationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := j.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(job.Table, job.FieldID, id),
 			sqlgraph.To(jobapplication.Table, jobapplication.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, job.JobApplicationsTable, job.JobApplicationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, job.JobapplTable, job.JobapplColumn),
 		)
 		fromV = sqlgraph.Neighbors(j.driver.Dialect(), step)
 		return fromV, nil
@@ -645,15 +661,15 @@ func (c *JobApplicationClient) GetX(ctx context.Context, id uuid.UUID) *JobAppli
 	return obj
 }
 
-// QueryUsers queries the users edge of a JobApplication.
-func (c *JobApplicationClient) QueryUsers(ja *JobApplication) *UserQuery {
+// QueryUser queries the user edge of a JobApplication.
+func (c *JobApplicationClient) QueryUser(ja *JobApplication) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ja.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.UsersTable, jobapplication.UsersColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.UserTable, jobapplication.UserColumn),
 		)
 		fromV = sqlgraph.Neighbors(ja.driver.Dialect(), step)
 		return fromV, nil
@@ -670,6 +686,22 @@ func (c *JobApplicationClient) QueryJob(ja *JobApplication) *JobQuery {
 			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, id),
 			sqlgraph.To(job.Table, job.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.JobTable, jobapplication.JobColumn),
+		)
+		fromV = sqlgraph.Neighbors(ja.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFile queries the file edge of a JobApplication.
+func (c *JobApplicationClient) QueryFile(ja *JobApplication) *FileQuery {
+	query := (&FileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ja.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, id),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.FileTable, jobapplication.FileColumn),
 		)
 		fromV = sqlgraph.Neighbors(ja.driver.Dialect(), step)
 		return fromV, nil
@@ -1023,15 +1055,15 @@ func (c *UserClient) QueryJobs(u *User) *JobQuery {
 	return query
 }
 
-// QueryJobApplications queries the job_applications edge of a User.
-func (c *UserClient) QueryJobApplications(u *User) *JobApplicationQuery {
+// QueryJobappl queries the jobappl edge of a User.
+func (c *UserClient) QueryJobappl(u *User) *JobApplicationQuery {
 	query := (&JobApplicationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(jobapplication.Table, jobapplication.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.JobApplicationsTable, user.JobApplicationsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.JobapplTable, user.JobapplColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/user"
@@ -28,6 +29,24 @@ func (jac *JobApplicationCreate) SetDescription(s string) *JobApplicationCreate 
 	return jac
 }
 
+// SetUserID sets the "user_id" field.
+func (jac *JobApplicationCreate) SetUserID(u uuid.UUID) *JobApplicationCreate {
+	jac.mutation.SetUserID(u)
+	return jac
+}
+
+// SetJobID sets the "job_id" field.
+func (jac *JobApplicationCreate) SetJobID(u uuid.UUID) *JobApplicationCreate {
+	jac.mutation.SetJobID(u)
+	return jac
+}
+
+// SetFileID sets the "file_id" field.
+func (jac *JobApplicationCreate) SetFileID(u uuid.UUID) *JobApplicationCreate {
+	jac.mutation.SetFileID(u)
+	return jac
+}
+
 // SetID sets the "id" field.
 func (jac *JobApplicationCreate) SetID(u uuid.UUID) *JobApplicationCreate {
 	jac.mutation.SetID(u)
@@ -42,26 +61,19 @@ func (jac *JobApplicationCreate) SetNillableID(u *uuid.UUID) *JobApplicationCrea
 	return jac
 }
 
-// SetUsersID sets the "users" edge to the User entity by ID.
-func (jac *JobApplicationCreate) SetUsersID(id uuid.UUID) *JobApplicationCreate {
-	jac.mutation.SetUsersID(id)
-	return jac
-}
-
-// SetUsers sets the "users" edge to the User entity.
-func (jac *JobApplicationCreate) SetUsers(u *User) *JobApplicationCreate {
-	return jac.SetUsersID(u.ID)
-}
-
-// SetJobID sets the "job" edge to the Job entity by ID.
-func (jac *JobApplicationCreate) SetJobID(id uuid.UUID) *JobApplicationCreate {
-	jac.mutation.SetJobID(id)
-	return jac
+// SetUser sets the "user" edge to the User entity.
+func (jac *JobApplicationCreate) SetUser(u *User) *JobApplicationCreate {
+	return jac.SetUserID(u.ID)
 }
 
 // SetJob sets the "job" edge to the Job entity.
 func (jac *JobApplicationCreate) SetJob(j *Job) *JobApplicationCreate {
 	return jac.SetJobID(j.ID)
+}
+
+// SetFile sets the "file" edge to the File entity.
+func (jac *JobApplicationCreate) SetFile(f *File) *JobApplicationCreate {
+	return jac.SetFileID(f.ID)
 }
 
 // Mutation returns the JobApplicationMutation object of the builder.
@@ -115,11 +127,23 @@ func (jac *JobApplicationCreate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "JobApplication.description": %w`, err)}
 		}
 	}
-	if len(jac.mutation.UsersIDs()) == 0 {
-		return &ValidationError{Name: "users", err: errors.New(`ent: missing required edge "JobApplication.users"`)}
+	if _, ok := jac.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "JobApplication.user_id"`)}
+	}
+	if _, ok := jac.mutation.JobID(); !ok {
+		return &ValidationError{Name: "job_id", err: errors.New(`ent: missing required field "JobApplication.job_id"`)}
+	}
+	if _, ok := jac.mutation.FileID(); !ok {
+		return &ValidationError{Name: "file_id", err: errors.New(`ent: missing required field "JobApplication.file_id"`)}
+	}
+	if len(jac.mutation.UserIDs()) == 0 {
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "JobApplication.user"`)}
 	}
 	if len(jac.mutation.JobIDs()) == 0 {
 		return &ValidationError{Name: "job", err: errors.New(`ent: missing required edge "JobApplication.job"`)}
+	}
+	if len(jac.mutation.FileIDs()) == 0 {
+		return &ValidationError{Name: "file", err: errors.New(`ent: missing required edge "JobApplication.file"`)}
 	}
 	return nil
 }
@@ -160,12 +184,12 @@ func (jac *JobApplicationCreate) createSpec() (*JobApplication, *sqlgraph.Create
 		_spec.SetField(jobapplication.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if nodes := jac.mutation.UsersIDs(); len(nodes) > 0 {
+	if nodes := jac.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   jobapplication.UsersTable,
-			Columns: []string{jobapplication.UsersColumn},
+			Table:   jobapplication.UserTable,
+			Columns: []string{jobapplication.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
@@ -174,7 +198,7 @@ func (jac *JobApplicationCreate) createSpec() (*JobApplication, *sqlgraph.Create
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_job_applications = &nodes[0]
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := jac.mutation.JobIDs(); len(nodes) > 0 {
@@ -191,7 +215,24 @@ func (jac *JobApplicationCreate) createSpec() (*JobApplication, *sqlgraph.Create
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.job_job_applications = &nodes[0]
+		_node.JobID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := jac.mutation.FileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   jobapplication.FileTable,
+			Columns: []string{jobapplication.FileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.FileID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

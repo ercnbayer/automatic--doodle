@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/user"
@@ -21,34 +22,40 @@ type JobApplication struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID uuid.UUID `json:"user_id,omitempty"`
+	// JobID holds the value of the "job_id" field.
+	JobID uuid.UUID `json:"job_id,omitempty"`
+	// FileID holds the value of the "file_id" field.
+	FileID uuid.UUID `json:"file_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the JobApplicationQuery when eager-loading is set.
-	Edges                 JobApplicationEdges `json:"edges"`
-	job_job_applications  *uuid.UUID
-	user_job_applications *uuid.UUID
-	selectValues          sql.SelectValues
+	Edges        JobApplicationEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // JobApplicationEdges holds the relations/edges for other nodes in the graph.
 type JobApplicationEdges struct {
-	// Users holds the value of the users edge.
-	Users *User `json:"users,omitempty"`
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
 	// Job holds the value of the job edge.
 	Job *Job `json:"job,omitempty"`
+	// File holds the value of the file edge.
+	File *File `json:"file,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
-// UsersOrErr returns the Users value or an error if the edge
+// UserOrErr returns the User value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e JobApplicationEdges) UsersOrErr() (*User, error) {
-	if e.Users != nil {
-		return e.Users, nil
+func (e JobApplicationEdges) UserOrErr() (*User, error) {
+	if e.User != nil {
+		return e.User, nil
 	} else if e.loadedTypes[0] {
 		return nil, &NotFoundError{label: user.Label}
 	}
-	return nil, &NotLoadedError{edge: "users"}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // JobOrErr returns the Job value or an error if the edge
@@ -62,6 +69,17 @@ func (e JobApplicationEdges) JobOrErr() (*Job, error) {
 	return nil, &NotLoadedError{edge: "job"}
 }
 
+// FileOrErr returns the File value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e JobApplicationEdges) FileOrErr() (*File, error) {
+	if e.File != nil {
+		return e.File, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: file.Label}
+	}
+	return nil, &NotLoadedError{edge: "file"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*JobApplication) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -69,12 +87,8 @@ func (*JobApplication) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case jobapplication.FieldDescription:
 			values[i] = new(sql.NullString)
-		case jobapplication.FieldID:
+		case jobapplication.FieldID, jobapplication.FieldUserID, jobapplication.FieldJobID, jobapplication.FieldFileID:
 			values[i] = new(uuid.UUID)
-		case jobapplication.ForeignKeys[0]: // job_job_applications
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case jobapplication.ForeignKeys[1]: // user_job_applications
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -102,19 +116,23 @@ func (ja *JobApplication) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ja.Description = value.String
 			}
-		case jobapplication.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field job_job_applications", values[i])
-			} else if value.Valid {
-				ja.job_job_applications = new(uuid.UUID)
-				*ja.job_job_applications = *value.S.(*uuid.UUID)
+		case jobapplication.FieldUserID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value != nil {
+				ja.UserID = *value
 			}
-		case jobapplication.ForeignKeys[1]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_job_applications", values[i])
-			} else if value.Valid {
-				ja.user_job_applications = new(uuid.UUID)
-				*ja.user_job_applications = *value.S.(*uuid.UUID)
+		case jobapplication.FieldJobID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field job_id", values[i])
+			} else if value != nil {
+				ja.JobID = *value
+			}
+		case jobapplication.FieldFileID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field file_id", values[i])
+			} else if value != nil {
+				ja.FileID = *value
 			}
 		default:
 			ja.selectValues.Set(columns[i], values[i])
@@ -129,14 +147,19 @@ func (ja *JobApplication) Value(name string) (ent.Value, error) {
 	return ja.selectValues.Get(name)
 }
 
-// QueryUsers queries the "users" edge of the JobApplication entity.
-func (ja *JobApplication) QueryUsers() *UserQuery {
-	return NewJobApplicationClient(ja.config).QueryUsers(ja)
+// QueryUser queries the "user" edge of the JobApplication entity.
+func (ja *JobApplication) QueryUser() *UserQuery {
+	return NewJobApplicationClient(ja.config).QueryUser(ja)
 }
 
 // QueryJob queries the "job" edge of the JobApplication entity.
 func (ja *JobApplication) QueryJob() *JobQuery {
 	return NewJobApplicationClient(ja.config).QueryJob(ja)
+}
+
+// QueryFile queries the "file" edge of the JobApplication entity.
+func (ja *JobApplication) QueryFile() *FileQuery {
+	return NewJobApplicationClient(ja.config).QueryFile(ja)
 }
 
 // Update returns a builder for updating this JobApplication.
@@ -164,6 +187,15 @@ func (ja *JobApplication) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", ja.ID))
 	builder.WriteString("description=")
 	builder.WriteString(ja.Description)
+	builder.WriteString(", ")
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", ja.UserID))
+	builder.WriteString(", ")
+	builder.WriteString("job_id=")
+	builder.WriteString(fmt.Sprintf("%v", ja.JobID))
+	builder.WriteString(", ")
+	builder.WriteString("file_id=")
+	builder.WriteString(fmt.Sprintf("%v", ja.FileID))
 	builder.WriteByte(')')
 	return builder.String()
 }

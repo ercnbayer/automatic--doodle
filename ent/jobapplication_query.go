@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/predicate"
@@ -25,9 +26,9 @@ type JobApplicationQuery struct {
 	order      []jobapplication.OrderOption
 	inters     []Interceptor
 	predicates []predicate.JobApplication
-	withUsers  *UserQuery
+	withUser   *UserQuery
 	withJob    *JobQuery
-	withFKs    bool
+	withFile   *FileQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -64,8 +65,8 @@ func (jaq *JobApplicationQuery) Order(o ...jobapplication.OrderOption) *JobAppli
 	return jaq
 }
 
-// QueryUsers chains the current query on the "users" edge.
-func (jaq *JobApplicationQuery) QueryUsers() *UserQuery {
+// QueryUser chains the current query on the "user" edge.
+func (jaq *JobApplicationQuery) QueryUser() *UserQuery {
 	query := (&UserClient{config: jaq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := jaq.prepareQuery(ctx); err != nil {
@@ -78,7 +79,7 @@ func (jaq *JobApplicationQuery) QueryUsers() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.UsersTable, jobapplication.UsersColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.UserTable, jobapplication.UserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(jaq.driver.Dialect(), step)
 		return fromU, nil
@@ -101,6 +102,28 @@ func (jaq *JobApplicationQuery) QueryJob() *JobQuery {
 			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, selector),
 			sqlgraph.To(job.Table, job.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.JobTable, jobapplication.JobColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(jaq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFile chains the current query on the "file" edge.
+func (jaq *JobApplicationQuery) QueryFile() *FileQuery {
+	query := (&FileClient{config: jaq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := jaq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := jaq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, selector),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.FileTable, jobapplication.FileColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(jaq.driver.Dialect(), step)
 		return fromU, nil
@@ -300,22 +323,23 @@ func (jaq *JobApplicationQuery) Clone() *JobApplicationQuery {
 		order:      append([]jobapplication.OrderOption{}, jaq.order...),
 		inters:     append([]Interceptor{}, jaq.inters...),
 		predicates: append([]predicate.JobApplication{}, jaq.predicates...),
-		withUsers:  jaq.withUsers.Clone(),
+		withUser:   jaq.withUser.Clone(),
 		withJob:    jaq.withJob.Clone(),
+		withFile:   jaq.withFile.Clone(),
 		// clone intermediate query.
 		sql:  jaq.sql.Clone(),
 		path: jaq.path,
 	}
 }
 
-// WithUsers tells the query-builder to eager-load the nodes that are connected to
-// the "users" edge. The optional arguments are used to configure the query builder of the edge.
-func (jaq *JobApplicationQuery) WithUsers(opts ...func(*UserQuery)) *JobApplicationQuery {
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (jaq *JobApplicationQuery) WithUser(opts ...func(*UserQuery)) *JobApplicationQuery {
 	query := (&UserClient{config: jaq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	jaq.withUsers = query
+	jaq.withUser = query
 	return jaq
 }
 
@@ -327,6 +351,17 @@ func (jaq *JobApplicationQuery) WithJob(opts ...func(*JobQuery)) *JobApplication
 		opt(query)
 	}
 	jaq.withJob = query
+	return jaq
+}
+
+// WithFile tells the query-builder to eager-load the nodes that are connected to
+// the "file" edge. The optional arguments are used to configure the query builder of the edge.
+func (jaq *JobApplicationQuery) WithFile(opts ...func(*FileQuery)) *JobApplicationQuery {
+	query := (&FileClient{config: jaq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	jaq.withFile = query
 	return jaq
 }
 
@@ -407,19 +442,13 @@ func (jaq *JobApplicationQuery) prepareQuery(ctx context.Context) error {
 func (jaq *JobApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*JobApplication, error) {
 	var (
 		nodes       = []*JobApplication{}
-		withFKs     = jaq.withFKs
 		_spec       = jaq.querySpec()
-		loadedTypes = [2]bool{
-			jaq.withUsers != nil,
+		loadedTypes = [3]bool{
+			jaq.withUser != nil,
 			jaq.withJob != nil,
+			jaq.withFile != nil,
 		}
 	)
-	if jaq.withUsers != nil || jaq.withJob != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, jobapplication.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*JobApplication).scanValues(nil, columns)
 	}
@@ -438,9 +467,9 @@ func (jaq *JobApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := jaq.withUsers; query != nil {
-		if err := jaq.loadUsers(ctx, query, nodes, nil,
-			func(n *JobApplication, e *User) { n.Edges.Users = e }); err != nil {
+	if query := jaq.withUser; query != nil {
+		if err := jaq.loadUser(ctx, query, nodes, nil,
+			func(n *JobApplication, e *User) { n.Edges.User = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -450,17 +479,20 @@ func (jaq *JobApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 			return nil, err
 		}
 	}
+	if query := jaq.withFile; query != nil {
+		if err := jaq.loadFile(ctx, query, nodes, nil,
+			func(n *JobApplication, e *File) { n.Edges.File = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
-func (jaq *JobApplicationQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*JobApplication, init func(*JobApplication), assign func(*JobApplication, *User)) error {
+func (jaq *JobApplicationQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*JobApplication, init func(*JobApplication), assign func(*JobApplication, *User)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*JobApplication)
 	for i := range nodes {
-		if nodes[i].user_job_applications == nil {
-			continue
-		}
-		fk := *nodes[i].user_job_applications
+		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -477,7 +509,7 @@ func (jaq *JobApplicationQuery) loadUsers(ctx context.Context, query *UserQuery,
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_job_applications" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -489,10 +521,7 @@ func (jaq *JobApplicationQuery) loadJob(ctx context.Context, query *JobQuery, no
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*JobApplication)
 	for i := range nodes {
-		if nodes[i].job_job_applications == nil {
-			continue
-		}
-		fk := *nodes[i].job_job_applications
+		fk := nodes[i].JobID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -509,7 +538,36 @@ func (jaq *JobApplicationQuery) loadJob(ctx context.Context, query *JobQuery, no
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "job_job_applications" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "job_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (jaq *JobApplicationQuery) loadFile(ctx context.Context, query *FileQuery, nodes []*JobApplication, init func(*JobApplication), assign func(*JobApplication, *File)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*JobApplication)
+	for i := range nodes {
+		fk := nodes[i].FileID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(file.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "file_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -542,6 +600,15 @@ func (jaq *JobApplicationQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != jobapplication.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if jaq.withUser != nil {
+			_spec.Node.AddColumnOnce(jobapplication.FieldUserID)
+		}
+		if jaq.withJob != nil {
+			_spec.Node.AddColumnOnce(jobapplication.FieldJobID)
+		}
+		if jaq.withFile != nil {
+			_spec.Node.AddColumnOnce(jobapplication.FieldFileID)
 		}
 	}
 	if ps := jaq.predicates; len(ps) > 0 {

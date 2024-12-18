@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -488,6 +489,29 @@ func ContentTypeEqualFold(v string) predicate.File {
 // ContentTypeContainsFold applies the ContainsFold predicate on the "content_type" field.
 func ContentTypeContainsFold(v string) predicate.File {
 	return predicate.File(sql.FieldContainsFold(FieldContentType, v))
+}
+
+// HasJobappl applies the HasEdge predicate on the "jobappl" edge.
+func HasJobappl() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, JobapplTable, JobapplColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasJobapplWith applies the HasEdge predicate on the "jobappl" edge with a given conditions (other predicates).
+func HasJobapplWith(preds ...predicate.JobApplication) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := newJobapplStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

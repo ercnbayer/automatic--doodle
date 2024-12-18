@@ -60,6 +60,21 @@ func Description(v string) predicate.JobApplication {
 	return predicate.JobApplication(sql.FieldEQ(FieldDescription, v))
 }
 
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldEQ(FieldUserID, v))
+}
+
+// JobID applies equality check predicate on the "job_id" field. It's identical to JobIDEQ.
+func JobID(v uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldEQ(FieldJobID, v))
+}
+
+// FileID applies equality check predicate on the "file_id" field. It's identical to FileIDEQ.
+func FileID(v uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldEQ(FieldFileID, v))
+}
+
 // DescriptionEQ applies the EQ predicate on the "description" field.
 func DescriptionEQ(v string) predicate.JobApplication {
 	return predicate.JobApplication(sql.FieldEQ(FieldDescription, v))
@@ -125,21 +140,81 @@ func DescriptionContainsFold(v string) predicate.JobApplication {
 	return predicate.JobApplication(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// HasUsers applies the HasEdge predicate on the "users" edge.
-func HasUsers() predicate.JobApplication {
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// JobIDEQ applies the EQ predicate on the "job_id" field.
+func JobIDEQ(v uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldEQ(FieldJobID, v))
+}
+
+// JobIDNEQ applies the NEQ predicate on the "job_id" field.
+func JobIDNEQ(v uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldNEQ(FieldJobID, v))
+}
+
+// JobIDIn applies the In predicate on the "job_id" field.
+func JobIDIn(vs ...uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldIn(FieldJobID, vs...))
+}
+
+// JobIDNotIn applies the NotIn predicate on the "job_id" field.
+func JobIDNotIn(vs ...uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldNotIn(FieldJobID, vs...))
+}
+
+// FileIDEQ applies the EQ predicate on the "file_id" field.
+func FileIDEQ(v uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldEQ(FieldFileID, v))
+}
+
+// FileIDNEQ applies the NEQ predicate on the "file_id" field.
+func FileIDNEQ(v uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldNEQ(FieldFileID, v))
+}
+
+// FileIDIn applies the In predicate on the "file_id" field.
+func FileIDIn(vs ...uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldIn(FieldFileID, vs...))
+}
+
+// FileIDNotIn applies the NotIn predicate on the "file_id" field.
+func FileIDNotIn(vs ...uuid.UUID) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldNotIn(FieldFileID, vs...))
+}
+
+// HasUser applies the HasEdge predicate on the "user" edge.
+func HasUser() predicate.JobApplication {
 	return predicate.JobApplication(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UsersTable, UsersColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUsersWith applies the HasEdge predicate on the "users" edge with a given conditions (other predicates).
-func HasUsersWith(preds ...predicate.User) predicate.JobApplication {
+// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
+func HasUserWith(preds ...predicate.User) predicate.JobApplication {
 	return predicate.JobApplication(func(s *sql.Selector) {
-		step := newUsersStep()
+		step := newUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -163,6 +238,29 @@ func HasJob() predicate.JobApplication {
 func HasJobWith(preds ...predicate.Job) predicate.JobApplication {
 	return predicate.JobApplication(func(s *sql.Selector) {
 		step := newJobStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFile applies the HasEdge predicate on the "file" edge.
+func HasFile() predicate.JobApplication {
+	return predicate.JobApplication(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FileTable, FileColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFileWith applies the HasEdge predicate on the "file" edge with a given conditions (other predicates).
+func HasFileWith(preds ...predicate.File) predicate.JobApplication {
+	return predicate.JobApplication(func(s *sql.Selector) {
+		step := newFileStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

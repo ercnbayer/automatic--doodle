@@ -183,19 +183,19 @@ func (uc *UserCreate) AddJobs(j ...*Job) *UserCreate {
 	return uc.AddJobIDs(ids...)
 }
 
-// AddJobApplicationIDs adds the "job_applications" edge to the JobApplication entity by IDs.
-func (uc *UserCreate) AddJobApplicationIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddJobApplicationIDs(ids...)
+// AddJobapplIDs adds the "jobappl" edge to the JobApplication entity by IDs.
+func (uc *UserCreate) AddJobapplIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddJobapplIDs(ids...)
 	return uc
 }
 
-// AddJobApplications adds the "job_applications" edges to the JobApplication entity.
-func (uc *UserCreate) AddJobApplications(j ...*JobApplication) *UserCreate {
+// AddJobappl adds the "jobappl" edges to the JobApplication entity.
+func (uc *UserCreate) AddJobappl(j ...*JobApplication) *UserCreate {
 	ids := make([]uuid.UUID, len(j))
 	for i := range j {
 		ids[i] = j[i].ID
 	}
-	return uc.AddJobApplicationIDs(ids...)
+	return uc.AddJobapplIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -460,12 +460,12 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.JobApplicationsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.JobapplIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.JobApplicationsTable,
-			Columns: []string{user.JobApplicationsColumn},
+			Table:   user.JobapplTable,
+			Columns: []string{user.JobapplColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(jobapplication.FieldID, field.TypeUUID),

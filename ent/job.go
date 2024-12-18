@@ -42,8 +42,8 @@ type Job struct {
 type JobEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
-	// JobApplications holds the value of the job_applications edge.
-	JobApplications []*JobApplication `json:"job_applications,omitempty"`
+	// Jobappl holds the value of the jobappl edge.
+	Jobappl []*JobApplication `json:"jobappl,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -60,13 +60,13 @@ func (e JobEdges) UserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
-// JobApplicationsOrErr returns the JobApplications value or an error if the edge
+// JobapplOrErr returns the Jobappl value or an error if the edge
 // was not loaded in eager-loading.
-func (e JobEdges) JobApplicationsOrErr() ([]*JobApplication, error) {
+func (e JobEdges) JobapplOrErr() ([]*JobApplication, error) {
 	if e.loadedTypes[1] {
-		return e.JobApplications, nil
+		return e.Jobappl, nil
 	}
-	return nil, &NotLoadedError{edge: "job_applications"}
+	return nil, &NotLoadedError{edge: "jobappl"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -166,9 +166,9 @@ func (j *Job) QueryUser() *UserQuery {
 	return NewJobClient(j.config).QueryUser(j)
 }
 
-// QueryJobApplications queries the "job_applications" edge of the Job entity.
-func (j *Job) QueryJobApplications() *JobApplicationQuery {
-	return NewJobClient(j.config).QueryJobApplications(j)
+// QueryJobappl queries the "jobappl" edge of the Job entity.
+func (j *Job) QueryJobappl() *JobApplicationQuery {
+	return NewJobClient(j.config).QueryJobappl(j)
 }
 
 // Update returns a builder for updating this Job.
