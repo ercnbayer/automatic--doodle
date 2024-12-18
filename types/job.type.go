@@ -26,3 +26,7 @@ type JobAdvResponse struct {
 	JobType     string            `json:"job_type" validate:"required,max=255"`
 	Description string            `json:"description" validate:"required,max=1024"`
 }
+
+type JobQuery struct {
+	Identifier string `query:"params"`
+}

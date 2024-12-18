@@ -17,5 +17,13 @@ func (r *Rest) GetRoutes() []types.HandlerItem {
 				r.CreateJobAdv,
 			},
 		},
+		types.HandlerItem{
+			Path:   "/job",
+			Method: "GET",
+			Handler: []func(*fiber.Ctx) error{
+				r.authenticationMiddleware.Auth,
+				r.BrowseJobs,
+			},
+		},
 	}
 }

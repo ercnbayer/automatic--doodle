@@ -27,4 +27,8 @@ type JobFactory interface {
 
 type JobRepository interface {
 	Create(*ent.JobCreate, context.Context) (*ent.Job, error)
+	GetByIdentifier(
+		identifier string,
+		ctx context.Context,
+	) ([]*ent.Job, error)
 }
