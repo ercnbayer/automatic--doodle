@@ -5,6 +5,7 @@ package ent
 import (
 	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
+	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/predicate"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
@@ -28,10 +29,11 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeFile         = "File"
-	TypeJob          = "Job"
-	TypeRefreshToken = "RefreshToken"
-	TypeUser         = "User"
+	TypeFile           = "File"
+	TypeJob            = "Job"
+	TypeJobApplication = "JobApplication"
+	TypeRefreshToken   = "RefreshToken"
+	TypeUser           = "User"
 )
 
 // FileMutation represents an operation that mutates the File nodes in the graph.
@@ -747,22 +749,25 @@ func (m *FileMutation) ResetEdge(name string) error {
 // JobMutation represents an operation that mutates the Job nodes in the graph.
 type JobMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	created_at    *time.Time
-	start_date    *time.Time
-	end_date      *time.Time
-	fee           *int
-	addfee        *int
-	job_type      *string
-	description   *string
-	clearedFields map[string]struct{}
-	user          *uuid.UUID
-	cleareduser   bool
-	done          bool
-	oldValue      func(context.Context) (*Job, error)
-	predicates    []predicate.Job
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	start_date              *time.Time
+	end_date                *time.Time
+	fee                     *int
+	addfee                  *int
+	job_type                *string
+	description             *string
+	clearedFields           map[string]struct{}
+	user                    *uuid.UUID
+	cleareduser             bool
+	job_applications        map[uuid.UUID]struct{}
+	removedjob_applications map[uuid.UUID]struct{}
+	clearedjob_applications bool
+	done                    bool
+	oldValue                func(context.Context) (*Job, error)
+	predicates              []predicate.Job
 }
 
 var _ ent.Mutation = (*JobMutation)(nil)
@@ -1170,6 +1175,60 @@ func (m *JobMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// AddJobApplicationIDs adds the "job_applications" edge to the JobApplication entity by ids.
+func (m *JobMutation) AddJobApplicationIDs(ids ...uuid.UUID) {
+	if m.job_applications == nil {
+		m.job_applications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.job_applications[ids[i]] = struct{}{}
+	}
+}
+
+// ClearJobApplications clears the "job_applications" edge to the JobApplication entity.
+func (m *JobMutation) ClearJobApplications() {
+	m.clearedjob_applications = true
+}
+
+// JobApplicationsCleared reports if the "job_applications" edge to the JobApplication entity was cleared.
+func (m *JobMutation) JobApplicationsCleared() bool {
+	return m.clearedjob_applications
+}
+
+// RemoveJobApplicationIDs removes the "job_applications" edge to the JobApplication entity by IDs.
+func (m *JobMutation) RemoveJobApplicationIDs(ids ...uuid.UUID) {
+	if m.removedjob_applications == nil {
+		m.removedjob_applications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.job_applications, ids[i])
+		m.removedjob_applications[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedJobApplications returns the removed IDs of the "job_applications" edge to the JobApplication entity.
+func (m *JobMutation) RemovedJobApplicationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedjob_applications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// JobApplicationsIDs returns the "job_applications" edge IDs in the mutation.
+func (m *JobMutation) JobApplicationsIDs() (ids []uuid.UUID) {
+	for id := range m.job_applications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetJobApplications resets all changes to the "job_applications" edge.
+func (m *JobMutation) ResetJobApplications() {
+	m.job_applications = nil
+	m.clearedjob_applications = false
+	m.removedjob_applications = nil
+}
+
 // Where appends a list predicates to the JobMutation builder.
 func (m *JobMutation) Where(ps ...predicate.Job) {
 	m.predicates = append(m.predicates, ps...)
@@ -1418,9 +1477,12 @@ func (m *JobMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *JobMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, job.EdgeUser)
+	}
+	if m.job_applications != nil {
+		edges = append(edges, job.EdgeJobApplications)
 	}
 	return edges
 }
@@ -1433,27 +1495,47 @@ func (m *JobMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case job.EdgeJobApplications:
+		ids := make([]ent.Value, 0, len(m.job_applications))
+		for id := range m.job_applications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *JobMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedjob_applications != nil {
+		edges = append(edges, job.EdgeJobApplications)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *JobMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case job.EdgeJobApplications:
+		ids := make([]ent.Value, 0, len(m.removedjob_applications))
+		for id := range m.removedjob_applications {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *JobMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, job.EdgeUser)
+	}
+	if m.clearedjob_applications {
+		edges = append(edges, job.EdgeJobApplications)
 	}
 	return edges
 }
@@ -1464,6 +1546,8 @@ func (m *JobMutation) EdgeCleared(name string) bool {
 	switch name {
 	case job.EdgeUser:
 		return m.cleareduser
+	case job.EdgeJobApplications:
+		return m.clearedjob_applications
 	}
 	return false
 }
@@ -1486,8 +1570,469 @@ func (m *JobMutation) ResetEdge(name string) error {
 	case job.EdgeUser:
 		m.ResetUser()
 		return nil
+	case job.EdgeJobApplications:
+		m.ResetJobApplications()
+		return nil
 	}
 	return fmt.Errorf("unknown Job edge %s", name)
+}
+
+// JobApplicationMutation represents an operation that mutates the JobApplication nodes in the graph.
+type JobApplicationMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	description   *string
+	clearedFields map[string]struct{}
+	users         *uuid.UUID
+	clearedusers  bool
+	job           *uuid.UUID
+	clearedjob    bool
+	done          bool
+	oldValue      func(context.Context) (*JobApplication, error)
+	predicates    []predicate.JobApplication
+}
+
+var _ ent.Mutation = (*JobApplicationMutation)(nil)
+
+// jobapplicationOption allows management of the mutation configuration using functional options.
+type jobapplicationOption func(*JobApplicationMutation)
+
+// newJobApplicationMutation creates new mutation for the JobApplication entity.
+func newJobApplicationMutation(c config, op Op, opts ...jobapplicationOption) *JobApplicationMutation {
+	m := &JobApplicationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeJobApplication,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withJobApplicationID sets the ID field of the mutation.
+func withJobApplicationID(id uuid.UUID) jobapplicationOption {
+	return func(m *JobApplicationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *JobApplication
+		)
+		m.oldValue = func(ctx context.Context) (*JobApplication, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().JobApplication.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withJobApplication sets the old JobApplication of the mutation.
+func withJobApplication(node *JobApplication) jobapplicationOption {
+	return func(m *JobApplicationMutation) {
+		m.oldValue = func(context.Context) (*JobApplication, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m JobApplicationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m JobApplicationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of JobApplication entities.
+func (m *JobApplicationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *JobApplicationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *JobApplicationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().JobApplication.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetDescription sets the "description" field.
+func (m *JobApplicationMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *JobApplicationMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the JobApplication entity.
+// If the JobApplication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobApplicationMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *JobApplicationMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetUsersID sets the "users" edge to the User entity by id.
+func (m *JobApplicationMutation) SetUsersID(id uuid.UUID) {
+	m.users = &id
+}
+
+// ClearUsers clears the "users" edge to the User entity.
+func (m *JobApplicationMutation) ClearUsers() {
+	m.clearedusers = true
+}
+
+// UsersCleared reports if the "users" edge to the User entity was cleared.
+func (m *JobApplicationMutation) UsersCleared() bool {
+	return m.clearedusers
+}
+
+// UsersID returns the "users" edge ID in the mutation.
+func (m *JobApplicationMutation) UsersID() (id uuid.UUID, exists bool) {
+	if m.users != nil {
+		return *m.users, true
+	}
+	return
+}
+
+// UsersIDs returns the "users" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UsersID instead. It exists only for internal usage by the builders.
+func (m *JobApplicationMutation) UsersIDs() (ids []uuid.UUID) {
+	if id := m.users; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUsers resets all changes to the "users" edge.
+func (m *JobApplicationMutation) ResetUsers() {
+	m.users = nil
+	m.clearedusers = false
+}
+
+// SetJobID sets the "job" edge to the Job entity by id.
+func (m *JobApplicationMutation) SetJobID(id uuid.UUID) {
+	m.job = &id
+}
+
+// ClearJob clears the "job" edge to the Job entity.
+func (m *JobApplicationMutation) ClearJob() {
+	m.clearedjob = true
+}
+
+// JobCleared reports if the "job" edge to the Job entity was cleared.
+func (m *JobApplicationMutation) JobCleared() bool {
+	return m.clearedjob
+}
+
+// JobID returns the "job" edge ID in the mutation.
+func (m *JobApplicationMutation) JobID() (id uuid.UUID, exists bool) {
+	if m.job != nil {
+		return *m.job, true
+	}
+	return
+}
+
+// JobIDs returns the "job" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// JobID instead. It exists only for internal usage by the builders.
+func (m *JobApplicationMutation) JobIDs() (ids []uuid.UUID) {
+	if id := m.job; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetJob resets all changes to the "job" edge.
+func (m *JobApplicationMutation) ResetJob() {
+	m.job = nil
+	m.clearedjob = false
+}
+
+// Where appends a list predicates to the JobApplicationMutation builder.
+func (m *JobApplicationMutation) Where(ps ...predicate.JobApplication) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the JobApplicationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *JobApplicationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.JobApplication, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *JobApplicationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *JobApplicationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (JobApplication).
+func (m *JobApplicationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *JobApplicationMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.description != nil {
+		fields = append(fields, jobapplication.FieldDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *JobApplicationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case jobapplication.FieldDescription:
+		return m.Description()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *JobApplicationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case jobapplication.FieldDescription:
+		return m.OldDescription(ctx)
+	}
+	return nil, fmt.Errorf("unknown JobApplication field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *JobApplicationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case jobapplication.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown JobApplication field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *JobApplicationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *JobApplicationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *JobApplicationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown JobApplication numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *JobApplicationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *JobApplicationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *JobApplicationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown JobApplication nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *JobApplicationMutation) ResetField(name string) error {
+	switch name {
+	case jobapplication.FieldDescription:
+		m.ResetDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown JobApplication field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *JobApplicationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.users != nil {
+		edges = append(edges, jobapplication.EdgeUsers)
+	}
+	if m.job != nil {
+		edges = append(edges, jobapplication.EdgeJob)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *JobApplicationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case jobapplication.EdgeUsers:
+		if id := m.users; id != nil {
+			return []ent.Value{*id}
+		}
+	case jobapplication.EdgeJob:
+		if id := m.job; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *JobApplicationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *JobApplicationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *JobApplicationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedusers {
+		edges = append(edges, jobapplication.EdgeUsers)
+	}
+	if m.clearedjob {
+		edges = append(edges, jobapplication.EdgeJob)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *JobApplicationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case jobapplication.EdgeUsers:
+		return m.clearedusers
+	case jobapplication.EdgeJob:
+		return m.clearedjob
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *JobApplicationMutation) ClearEdge(name string) error {
+	switch name {
+	case jobapplication.EdgeUsers:
+		m.ClearUsers()
+		return nil
+	case jobapplication.EdgeJob:
+		m.ClearJob()
+		return nil
+	}
+	return fmt.Errorf("unknown JobApplication unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *JobApplicationMutation) ResetEdge(name string) error {
+	switch name {
+	case jobapplication.EdgeUsers:
+		m.ResetUsers()
+		return nil
+	case jobapplication.EdgeJob:
+		m.ResetJob()
+		return nil
+	}
+	return fmt.Errorf("unknown JobApplication edge %s", name)
 }
 
 // RefreshTokenMutation represents an operation that mutates the RefreshToken nodes in the graph.
@@ -2162,33 +2707,36 @@ func (m *RefreshTokenMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *uuid.UUID
-	phone_number          *string
-	email                 *string
-	first_name            *string
-	last_name             *string
-	role                  *user.Role
-	state                 *user.State
-	password_salt         *string
-	password_hash         *string
-	created_at            *time.Time
-	updated_at            *time.Time
-	clearedFields         map[string]struct{}
-	refresh_tokens        map[uuid.UUID]struct{}
-	removedrefresh_tokens map[uuid.UUID]struct{}
-	clearedrefresh_tokens bool
-	profile_image         *uuid.UUID
-	clearedprofile_image  bool
-	cover_image           *uuid.UUID
-	clearedcover_image    bool
-	jobs                  map[uuid.UUID]struct{}
-	removedjobs           map[uuid.UUID]struct{}
-	clearedjobs           bool
-	done                  bool
-	oldValue              func(context.Context) (*User, error)
-	predicates            []predicate.User
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	phone_number            *string
+	email                   *string
+	first_name              *string
+	last_name               *string
+	role                    *user.Role
+	state                   *user.State
+	password_salt           *string
+	password_hash           *string
+	created_at              *time.Time
+	updated_at              *time.Time
+	clearedFields           map[string]struct{}
+	refresh_tokens          map[uuid.UUID]struct{}
+	removedrefresh_tokens   map[uuid.UUID]struct{}
+	clearedrefresh_tokens   bool
+	profile_image           *uuid.UUID
+	clearedprofile_image    bool
+	cover_image             *uuid.UUID
+	clearedcover_image      bool
+	jobs                    map[uuid.UUID]struct{}
+	removedjobs             map[uuid.UUID]struct{}
+	clearedjobs             bool
+	job_applications        map[uuid.UUID]struct{}
+	removedjob_applications map[uuid.UUID]struct{}
+	clearedjob_applications bool
+	done                    bool
+	oldValue                func(context.Context) (*User, error)
+	predicates              []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -2841,6 +3389,60 @@ func (m *UserMutation) ResetJobs() {
 	m.removedjobs = nil
 }
 
+// AddJobApplicationIDs adds the "job_applications" edge to the JobApplication entity by ids.
+func (m *UserMutation) AddJobApplicationIDs(ids ...uuid.UUID) {
+	if m.job_applications == nil {
+		m.job_applications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.job_applications[ids[i]] = struct{}{}
+	}
+}
+
+// ClearJobApplications clears the "job_applications" edge to the JobApplication entity.
+func (m *UserMutation) ClearJobApplications() {
+	m.clearedjob_applications = true
+}
+
+// JobApplicationsCleared reports if the "job_applications" edge to the JobApplication entity was cleared.
+func (m *UserMutation) JobApplicationsCleared() bool {
+	return m.clearedjob_applications
+}
+
+// RemoveJobApplicationIDs removes the "job_applications" edge to the JobApplication entity by IDs.
+func (m *UserMutation) RemoveJobApplicationIDs(ids ...uuid.UUID) {
+	if m.removedjob_applications == nil {
+		m.removedjob_applications = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.job_applications, ids[i])
+		m.removedjob_applications[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedJobApplications returns the removed IDs of the "job_applications" edge to the JobApplication entity.
+func (m *UserMutation) RemovedJobApplicationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedjob_applications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// JobApplicationsIDs returns the "job_applications" edge IDs in the mutation.
+func (m *UserMutation) JobApplicationsIDs() (ids []uuid.UUID) {
+	for id := range m.job_applications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetJobApplications resets all changes to the "job_applications" edge.
+func (m *UserMutation) ResetJobApplications() {
+	m.job_applications = nil
+	m.clearedjob_applications = false
+	m.removedjob_applications = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -3127,7 +3729,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.refresh_tokens != nil {
 		edges = append(edges, user.EdgeRefreshTokens)
 	}
@@ -3139,6 +3741,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.jobs != nil {
 		edges = append(edges, user.EdgeJobs)
+	}
+	if m.job_applications != nil {
+		edges = append(edges, user.EdgeJobApplications)
 	}
 	return edges
 }
@@ -3167,18 +3772,27 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeJobApplications:
+		ids := make([]ent.Value, 0, len(m.job_applications))
+		for id := range m.job_applications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedrefresh_tokens != nil {
 		edges = append(edges, user.EdgeRefreshTokens)
 	}
 	if m.removedjobs != nil {
 		edges = append(edges, user.EdgeJobs)
+	}
+	if m.removedjob_applications != nil {
+		edges = append(edges, user.EdgeJobApplications)
 	}
 	return edges
 }
@@ -3199,13 +3813,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeJobApplications:
+		ids := make([]ent.Value, 0, len(m.removedjob_applications))
+		for id := range m.removedjob_applications {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedrefresh_tokens {
 		edges = append(edges, user.EdgeRefreshTokens)
 	}
@@ -3217,6 +3837,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedjobs {
 		edges = append(edges, user.EdgeJobs)
+	}
+	if m.clearedjob_applications {
+		edges = append(edges, user.EdgeJobApplications)
 	}
 	return edges
 }
@@ -3233,6 +3856,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedcover_image
 	case user.EdgeJobs:
 		return m.clearedjobs
+	case user.EdgeJobApplications:
+		return m.clearedjob_applications
 	}
 	return false
 }
@@ -3266,6 +3891,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeJobs:
 		m.ResetJobs()
+		return nil
+	case user.EdgeJobApplications:
+		m.ResetJobApplications()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

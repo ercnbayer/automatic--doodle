@@ -5,6 +5,7 @@ package ent
 import (
 	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
+	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
 	"context"
@@ -180,6 +181,21 @@ func (uc *UserCreate) AddJobs(j ...*Job) *UserCreate {
 		ids[i] = j[i].ID
 	}
 	return uc.AddJobIDs(ids...)
+}
+
+// AddJobApplicationIDs adds the "job_applications" edge to the JobApplication entity by IDs.
+func (uc *UserCreate) AddJobApplicationIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddJobApplicationIDs(ids...)
+	return uc
+}
+
+// AddJobApplications adds the "job_applications" edges to the JobApplication entity.
+func (uc *UserCreate) AddJobApplications(j ...*JobApplication) *UserCreate {
+	ids := make([]uuid.UUID, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return uc.AddJobApplicationIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -437,6 +453,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(job.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.JobApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.JobApplicationsTable,
+			Columns: []string{user.JobApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(jobapplication.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

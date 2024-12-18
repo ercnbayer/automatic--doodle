@@ -57,9 +57,11 @@ type UserEdges struct {
 	CoverImage *File `json:"cover_image,omitempty"`
 	// Jobs holds the value of the jobs edge.
 	Jobs []*Job `json:"jobs,omitempty"`
+	// JobApplications holds the value of the job_applications edge.
+	JobApplications []*JobApplication `json:"job_applications,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // RefreshTokensOrErr returns the RefreshTokens value or an error if the edge
@@ -100,6 +102,15 @@ func (e UserEdges) JobsOrErr() ([]*Job, error) {
 		return e.Jobs, nil
 	}
 	return nil, &NotLoadedError{edge: "jobs"}
+}
+
+// JobApplicationsOrErr returns the JobApplications value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) JobApplicationsOrErr() ([]*JobApplication, error) {
+	if e.loadedTypes[4] {
+		return e.JobApplications, nil
+	}
+	return nil, &NotLoadedError{edge: "job_applications"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -243,6 +254,11 @@ func (u *User) QueryCoverImage() *FileQuery {
 // QueryJobs queries the "jobs" edge of the User entity.
 func (u *User) QueryJobs() *JobQuery {
 	return NewUserClient(u.config).QueryJobs(u)
+}
+
+// QueryJobApplications queries the "job_applications" edge of the User entity.
+func (u *User) QueryJobApplications() *JobApplicationQuery {
+	return NewUserClient(u.config).QueryJobApplications(u)
 }
 
 // Update returns a builder for updating this User.

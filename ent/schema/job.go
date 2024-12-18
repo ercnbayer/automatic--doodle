@@ -44,6 +44,7 @@ func (Job) Edges() []ent.Edge {
 			Ref("jobs").
 			Unique().
 			Required(),
+		edge.To("jobappl", JobApplication.Type),
 	}
 }
 

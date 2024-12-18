@@ -44,6 +44,8 @@ const (
 	EdgeCoverImage = "cover_image"
 	// EdgeJobs holds the string denoting the jobs edge name in mutations.
 	EdgeJobs = "jobs"
+	// EdgeJobApplications holds the string denoting the job_applications edge name in mutations.
+	EdgeJobApplications = "job_applications"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RefreshTokensTable is the table that holds the refresh_tokens relation/edge.
@@ -74,6 +76,13 @@ const (
 	JobsInverseTable = "jobs"
 	// JobsColumn is the table column denoting the jobs relation/edge.
 	JobsColumn = "user_jobs"
+	// JobApplicationsTable is the table that holds the job_applications relation/edge.
+	JobApplicationsTable = "job_applications"
+	// JobApplicationsInverseTable is the table name for the JobApplication entity.
+	// It exists in this package in order to avoid circular dependency with the "jobapplication" package.
+	JobApplicationsInverseTable = "job_applications"
+	// JobApplicationsColumn is the table column denoting the job_applications relation/edge.
+	JobApplicationsColumn = "user_job_applications"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -281,6 +290,20 @@ func ByJobs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newJobsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByJobApplicationsCount orders the results by job_applications count.
+func ByJobApplicationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newJobApplicationsStep(), opts...)
+	}
+}
+
+// ByJobApplications orders the results by job_applications terms.
+func ByJobApplications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newJobApplicationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newRefreshTokensStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -307,5 +330,12 @@ func newJobsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(JobsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, JobsTable, JobsColumn),
+	)
+}
+func newJobApplicationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(JobApplicationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, JobApplicationsTable, JobApplicationsColumn),
 	)
 }

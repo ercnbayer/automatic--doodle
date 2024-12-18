@@ -50,7 +50,6 @@ func (User) Fields() []ent.Field {
 			Default(time.Now).
 			UpdateDefault(time.Now),
 	}
-
 }
 
 // Edges of the User.
@@ -62,6 +61,6 @@ func (User) Edges() []ent.Edge {
 		edge.To("cover_image", File.Type).
 			Unique(),
 		edge.To("jobs", Job.Type),
+		edge.To("jobappl", JobApplication.Type), // Add job applications
 	}
-
 }

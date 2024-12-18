@@ -13,6 +13,7 @@ import (
 
 	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
+	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
 
@@ -32,6 +33,8 @@ type Client struct {
 	File *FileClient
 	// Job is the client for interacting with the Job builders.
 	Job *JobClient
+	// JobApplication is the client for interacting with the JobApplication builders.
+	JobApplication *JobApplicationClient
 	// RefreshToken is the client for interacting with the RefreshToken builders.
 	RefreshToken *RefreshTokenClient
 	// User is the client for interacting with the User builders.
@@ -49,6 +52,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.File = NewFileClient(c.config)
 	c.Job = NewJobClient(c.config)
+	c.JobApplication = NewJobApplicationClient(c.config)
 	c.RefreshToken = NewRefreshTokenClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -141,12 +145,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		File:         NewFileClient(cfg),
-		Job:          NewJobClient(cfg),
-		RefreshToken: NewRefreshTokenClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		File:           NewFileClient(cfg),
+		Job:            NewJobClient(cfg),
+		JobApplication: NewJobApplicationClient(cfg),
+		RefreshToken:   NewRefreshTokenClient(cfg),
+		User:           NewUserClient(cfg),
 	}, nil
 }
 
@@ -164,12 +169,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		File:         NewFileClient(cfg),
-		Job:          NewJobClient(cfg),
-		RefreshToken: NewRefreshTokenClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		File:           NewFileClient(cfg),
+		Job:            NewJobClient(cfg),
+		JobApplication: NewJobApplicationClient(cfg),
+		RefreshToken:   NewRefreshTokenClient(cfg),
+		User:           NewUserClient(cfg),
 	}, nil
 }
 
@@ -200,6 +206,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.File.Use(hooks...)
 	c.Job.Use(hooks...)
+	c.JobApplication.Use(hooks...)
 	c.RefreshToken.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -209,6 +216,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.File.Intercept(interceptors...)
 	c.Job.Intercept(interceptors...)
+	c.JobApplication.Intercept(interceptors...)
 	c.RefreshToken.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
@@ -220,6 +228,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.File.mutate(ctx, m)
 	case *JobMutation:
 		return c.Job.mutate(ctx, m)
+	case *JobApplicationMutation:
+		return c.JobApplication.mutate(ctx, m)
 	case *RefreshTokenMutation:
 		return c.RefreshToken.mutate(ctx, m)
 	case *UserMutation:
@@ -486,6 +496,22 @@ func (c *JobClient) QueryUser(j *Job) *UserQuery {
 	return query
 }
 
+// QueryJobApplications queries the job_applications edge of a Job.
+func (c *JobClient) QueryJobApplications(j *Job) *JobApplicationQuery {
+	query := (&JobApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := j.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(job.Table, job.FieldID, id),
+			sqlgraph.To(jobapplication.Table, jobapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, job.JobApplicationsTable, job.JobApplicationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(j.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *JobClient) Hooks() []Hook {
 	return c.hooks.Job
@@ -508,6 +534,171 @@ func (c *JobClient) mutate(ctx context.Context, m *JobMutation) (Value, error) {
 		return (&JobDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Job mutation op: %q", m.Op())
+	}
+}
+
+// JobApplicationClient is a client for the JobApplication schema.
+type JobApplicationClient struct {
+	config
+}
+
+// NewJobApplicationClient returns a client for the JobApplication from the given config.
+func NewJobApplicationClient(c config) *JobApplicationClient {
+	return &JobApplicationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `jobapplication.Hooks(f(g(h())))`.
+func (c *JobApplicationClient) Use(hooks ...Hook) {
+	c.hooks.JobApplication = append(c.hooks.JobApplication, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `jobapplication.Intercept(f(g(h())))`.
+func (c *JobApplicationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.JobApplication = append(c.inters.JobApplication, interceptors...)
+}
+
+// Create returns a builder for creating a JobApplication entity.
+func (c *JobApplicationClient) Create() *JobApplicationCreate {
+	mutation := newJobApplicationMutation(c.config, OpCreate)
+	return &JobApplicationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of JobApplication entities.
+func (c *JobApplicationClient) CreateBulk(builders ...*JobApplicationCreate) *JobApplicationCreateBulk {
+	return &JobApplicationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *JobApplicationClient) MapCreateBulk(slice any, setFunc func(*JobApplicationCreate, int)) *JobApplicationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &JobApplicationCreateBulk{err: fmt.Errorf("calling to JobApplicationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*JobApplicationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &JobApplicationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for JobApplication.
+func (c *JobApplicationClient) Update() *JobApplicationUpdate {
+	mutation := newJobApplicationMutation(c.config, OpUpdate)
+	return &JobApplicationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *JobApplicationClient) UpdateOne(ja *JobApplication) *JobApplicationUpdateOne {
+	mutation := newJobApplicationMutation(c.config, OpUpdateOne, withJobApplication(ja))
+	return &JobApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *JobApplicationClient) UpdateOneID(id uuid.UUID) *JobApplicationUpdateOne {
+	mutation := newJobApplicationMutation(c.config, OpUpdateOne, withJobApplicationID(id))
+	return &JobApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for JobApplication.
+func (c *JobApplicationClient) Delete() *JobApplicationDelete {
+	mutation := newJobApplicationMutation(c.config, OpDelete)
+	return &JobApplicationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *JobApplicationClient) DeleteOne(ja *JobApplication) *JobApplicationDeleteOne {
+	return c.DeleteOneID(ja.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *JobApplicationClient) DeleteOneID(id uuid.UUID) *JobApplicationDeleteOne {
+	builder := c.Delete().Where(jobapplication.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &JobApplicationDeleteOne{builder}
+}
+
+// Query returns a query builder for JobApplication.
+func (c *JobApplicationClient) Query() *JobApplicationQuery {
+	return &JobApplicationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeJobApplication},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a JobApplication entity by its id.
+func (c *JobApplicationClient) Get(ctx context.Context, id uuid.UUID) (*JobApplication, error) {
+	return c.Query().Where(jobapplication.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *JobApplicationClient) GetX(ctx context.Context, id uuid.UUID) *JobApplication {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUsers queries the users edge of a JobApplication.
+func (c *JobApplicationClient) QueryUsers(ja *JobApplication) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ja.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.UsersTable, jobapplication.UsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(ja.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryJob queries the job edge of a JobApplication.
+func (c *JobApplicationClient) QueryJob(ja *JobApplication) *JobQuery {
+	query := (&JobClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ja.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, id),
+			sqlgraph.To(job.Table, job.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.JobTable, jobapplication.JobColumn),
+		)
+		fromV = sqlgraph.Neighbors(ja.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *JobApplicationClient) Hooks() []Hook {
+	return c.hooks.JobApplication
+}
+
+// Interceptors returns the client interceptors.
+func (c *JobApplicationClient) Interceptors() []Interceptor {
+	return c.inters.JobApplication
+}
+
+func (c *JobApplicationClient) mutate(ctx context.Context, m *JobApplicationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&JobApplicationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&JobApplicationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&JobApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&JobApplicationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown JobApplication mutation op: %q", m.Op())
 	}
 }
 
@@ -832,6 +1023,22 @@ func (c *UserClient) QueryJobs(u *User) *JobQuery {
 	return query
 }
 
+// QueryJobApplications queries the job_applications edge of a User.
+func (c *UserClient) QueryJobApplications(u *User) *JobApplicationQuery {
+	query := (&JobApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(jobapplication.Table, jobapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.JobApplicationsTable, user.JobApplicationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -860,9 +1067,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		File, Job, RefreshToken, User []ent.Hook
+		File, Job, JobApplication, RefreshToken, User []ent.Hook
 	}
 	inters struct {
-		File, Job, RefreshToken, User []ent.Interceptor
+		File, Job, JobApplication, RefreshToken, User []ent.Interceptor
 	}
 )

@@ -12,6 +12,9 @@ type File func(*sql.Selector)
 // Job is the predicate function for job builders.
 type Job func(*sql.Selector)
 
+// JobApplication is the predicate function for jobapplication builders.
+type JobApplication func(*sql.Selector)
+
 // RefreshToken is the predicate function for refreshtoken builders.
 type RefreshToken func(*sql.Selector)
 
