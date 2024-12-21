@@ -89,6 +89,7 @@ func (mod *EncryptionModule) DecryptTokens(
 }
 
 func (mod *EncryptionModule) GenerateSalt(length int) string {
+
 	return uuid.NewString()[:length]
 }
 

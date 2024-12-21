@@ -13,12 +13,14 @@ func (srv *Service) Register(payload *types.RegisterRequest) (types.TokenRespons
 	user, err := srv.userRepository.Create(userRow, context.Background())
 
 	if err != nil {
+		srv.log.Info("Err:%s", err)
 		return types.TokenResponse{}, err
 	}
 
 	tokens, err := srv.CreateTokens(user.ID, user.Role)
 
 	if err != nil {
+		srv.log.Info("Err:%s", err)
 		return types.TokenResponse{}, err
 	}
 

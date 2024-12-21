@@ -6,7 +6,7 @@ import (
 )
 
 type Factory struct {
-	db ent.Client
+	db *ent.Client
 }
 
 var (
@@ -14,9 +14,11 @@ var (
 	moduleOnce sync.Once
 )
 
-func New() *Factory {
+func New(db *ent.Client) *Factory {
 	moduleOnce.Do(func() {
-		module = Factory{}
+		module = Factory{
+			db: db,
+		}
 	})
 	return &module
 }

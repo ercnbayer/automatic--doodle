@@ -21,7 +21,7 @@ func (r *Rest) loginUser(c *fiber.Ctx) error {
 		Login(&payload)
 
 	if err != nil {
-		return err
+		return errors.New("USER LOGIN", "SERVICE ERROR")
 	}
 
 	return c.Status(200).JSON(response)

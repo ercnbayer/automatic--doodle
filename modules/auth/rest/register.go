@@ -27,6 +27,7 @@ func (r *Rest) Register(c *fiber.Ctx) error {
 	tokens, RegisterErr := r.authenticationService.Register(&payload)
 
 	if RegisterErr != nil {
+		r.log.Warning("service err")
 		return RegisterErr
 	}
 

@@ -12,7 +12,6 @@ func (mw *Middleware) Auth(c *fiber.Ctx) error {
 
 	if len(tokenHeaders) == 0 {
 
-		// to do throw err
 		errors.NewUnauthorizedError("auth err token headers")
 
 	}
@@ -21,7 +20,6 @@ func (mw *Middleware) Auth(c *fiber.Ctx) error {
 
 	if len(token) == 0 {
 
-		// to do throw err
 		errors.NewUnauthorizedError("auth err getting first token ")
 	}
 

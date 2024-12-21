@@ -40,6 +40,7 @@ func (repo *UserRepository) Create(
 	item *ent.UserCreate,
 	ctx context.Context,
 ) (*ent.User, error) {
+
 	if item == nil {
 		return nil, fmt.Errorf("user cannot be nil")
 	}
