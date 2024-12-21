@@ -1,7 +1,7 @@
 package main
 
 import (
-	"automatic-doodle/di"
+	di "automatic-doodle/di"
 	_ "automatic-doodle/ent/runtime"
 )
 

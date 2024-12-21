@@ -1,6 +1,10 @@
 package middleware
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"automatic-doodle/pkg/errors"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 func (mw *Middleware) Auth(c *fiber.Ctx) error {
 	headers := c.GetReqHeaders()
@@ -9,6 +13,7 @@ func (mw *Middleware) Auth(c *fiber.Ctx) error {
 	if len(tokenHeaders) == 0 {
 
 		// to do throw err
+		errors.NewUnauthorizedError("auth err token headers")
 
 	}
 
@@ -17,12 +22,14 @@ func (mw *Middleware) Auth(c *fiber.Ctx) error {
 	if len(token) == 0 {
 
 		// to do throw err
+		errors.NewUnauthorizedError("auth err getting first token ")
 	}
 
 	pUser, err := mw.authenticationService.GetUserByToken(&token)
 
 	if err != nil {
 		// to do throw err
+		errors.NewUnauthorizedError("auth err get token headers")
 	}
 	c.Locals("user", pUser)
 

@@ -55,7 +55,7 @@ var (
 	JobApplicationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "description", Type: field.TypeString, Size: 1024},
-		{Name: "file_id", Type: field.TypeUUID},
+		{Name: "object_key", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "job_id", Type: field.TypeUUID},
 		{Name: "user_id", Type: field.TypeUUID},
 	}
@@ -65,12 +65,6 @@ var (
 		Columns:    JobApplicationsColumns,
 		PrimaryKey: []*schema.Column{JobApplicationsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "job_applications_files_jobappl",
-				Columns:    []*schema.Column{JobApplicationsColumns[2]},
-				RefColumns: []*schema.Column{FilesColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
 			{
 				Symbol:     "job_applications_jobs_jobappl",
 				Columns:    []*schema.Column{JobApplicationsColumns[3]},
@@ -157,9 +151,8 @@ var (
 
 func init() {
 	JobsTable.ForeignKeys[0].RefTable = UsersTable
-	JobApplicationsTable.ForeignKeys[0].RefTable = FilesTable
-	JobApplicationsTable.ForeignKeys[1].RefTable = JobsTable
-	JobApplicationsTable.ForeignKeys[2].RefTable = UsersTable
+	JobApplicationsTable.ForeignKeys[0].RefTable = JobsTable
+	JobApplicationsTable.ForeignKeys[1].RefTable = UsersTable
 	RefreshTokensTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = FilesTable
 	UsersTable.ForeignKeys[1].RefTable = FilesTable

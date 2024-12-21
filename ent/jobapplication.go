@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/user"
@@ -26,8 +25,8 @@ type JobApplication struct {
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// JobID holds the value of the "job_id" field.
 	JobID uuid.UUID `json:"job_id,omitempty"`
-	// FileID holds the value of the "file_id" field.
-	FileID uuid.UUID `json:"file_id,omitempty"`
+	// ObjectKey holds the value of the "object_key" field.
+	ObjectKey string `json:"object_key,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the JobApplicationQuery when eager-loading is set.
 	Edges        JobApplicationEdges `json:"edges"`
@@ -40,11 +39,9 @@ type JobApplicationEdges struct {
 	User *User `json:"user,omitempty"`
 	// Job holds the value of the job edge.
 	Job *Job `json:"job,omitempty"`
-	// File holds the value of the file edge.
-	File *File `json:"file,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -69,25 +66,14 @@ func (e JobApplicationEdges) JobOrErr() (*Job, error) {
 	return nil, &NotLoadedError{edge: "job"}
 }
 
-// FileOrErr returns the File value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e JobApplicationEdges) FileOrErr() (*File, error) {
-	if e.File != nil {
-		return e.File, nil
-	} else if e.loadedTypes[2] {
-		return nil, &NotFoundError{label: file.Label}
-	}
-	return nil, &NotLoadedError{edge: "file"}
-}
-
 // scanValues returns the types for scanning values from sql.Rows.
 func (*JobApplication) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case jobapplication.FieldDescription:
+		case jobapplication.FieldDescription, jobapplication.FieldObjectKey:
 			values[i] = new(sql.NullString)
-		case jobapplication.FieldID, jobapplication.FieldUserID, jobapplication.FieldJobID, jobapplication.FieldFileID:
+		case jobapplication.FieldID, jobapplication.FieldUserID, jobapplication.FieldJobID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -128,11 +114,11 @@ func (ja *JobApplication) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				ja.JobID = *value
 			}
-		case jobapplication.FieldFileID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field file_id", values[i])
-			} else if value != nil {
-				ja.FileID = *value
+		case jobapplication.FieldObjectKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field object_key", values[i])
+			} else if value.Valid {
+				ja.ObjectKey = value.String
 			}
 		default:
 			ja.selectValues.Set(columns[i], values[i])
@@ -155,11 +141,6 @@ func (ja *JobApplication) QueryUser() *UserQuery {
 // QueryJob queries the "job" edge of the JobApplication entity.
 func (ja *JobApplication) QueryJob() *JobQuery {
 	return NewJobApplicationClient(ja.config).QueryJob(ja)
-}
-
-// QueryFile queries the "file" edge of the JobApplication entity.
-func (ja *JobApplication) QueryFile() *FileQuery {
-	return NewJobApplicationClient(ja.config).QueryFile(ja)
 }
 
 // Update returns a builder for updating this JobApplication.
@@ -194,8 +175,8 @@ func (ja *JobApplication) String() string {
 	builder.WriteString("job_id=")
 	builder.WriteString(fmt.Sprintf("%v", ja.JobID))
 	builder.WriteString(", ")
-	builder.WriteString("file_id=")
-	builder.WriteString(fmt.Sprintf("%v", ja.FileID))
+	builder.WriteString("object_key=")
+	builder.WriteString(ja.ObjectKey)
 	builder.WriteByte(')')
 	return builder.String()
 }

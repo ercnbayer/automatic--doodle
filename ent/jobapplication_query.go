@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/predicate"
@@ -28,7 +27,6 @@ type JobApplicationQuery struct {
 	predicates []predicate.JobApplication
 	withUser   *UserQuery
 	withJob    *JobQuery
-	withFile   *FileQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -102,28 +100,6 @@ func (jaq *JobApplicationQuery) QueryJob() *JobQuery {
 			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, selector),
 			sqlgraph.To(job.Table, job.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.JobTable, jobapplication.JobColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(jaq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryFile chains the current query on the "file" edge.
-func (jaq *JobApplicationQuery) QueryFile() *FileQuery {
-	query := (&FileClient{config: jaq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := jaq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := jaq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, selector),
-			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.FileTable, jobapplication.FileColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(jaq.driver.Dialect(), step)
 		return fromU, nil
@@ -325,7 +301,6 @@ func (jaq *JobApplicationQuery) Clone() *JobApplicationQuery {
 		predicates: append([]predicate.JobApplication{}, jaq.predicates...),
 		withUser:   jaq.withUser.Clone(),
 		withJob:    jaq.withJob.Clone(),
-		withFile:   jaq.withFile.Clone(),
 		// clone intermediate query.
 		sql:  jaq.sql.Clone(),
 		path: jaq.path,
@@ -351,17 +326,6 @@ func (jaq *JobApplicationQuery) WithJob(opts ...func(*JobQuery)) *JobApplication
 		opt(query)
 	}
 	jaq.withJob = query
-	return jaq
-}
-
-// WithFile tells the query-builder to eager-load the nodes that are connected to
-// the "file" edge. The optional arguments are used to configure the query builder of the edge.
-func (jaq *JobApplicationQuery) WithFile(opts ...func(*FileQuery)) *JobApplicationQuery {
-	query := (&FileClient{config: jaq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	jaq.withFile = query
 	return jaq
 }
 
@@ -443,10 +407,9 @@ func (jaq *JobApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*JobApplication{}
 		_spec       = jaq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [2]bool{
 			jaq.withUser != nil,
 			jaq.withJob != nil,
-			jaq.withFile != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -476,12 +439,6 @@ func (jaq *JobApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if query := jaq.withJob; query != nil {
 		if err := jaq.loadJob(ctx, query, nodes, nil,
 			func(n *JobApplication, e *Job) { n.Edges.Job = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := jaq.withFile; query != nil {
-		if err := jaq.loadFile(ctx, query, nodes, nil,
-			func(n *JobApplication, e *File) { n.Edges.File = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -546,35 +503,6 @@ func (jaq *JobApplicationQuery) loadJob(ctx context.Context, query *JobQuery, no
 	}
 	return nil
 }
-func (jaq *JobApplicationQuery) loadFile(ctx context.Context, query *FileQuery, nodes []*JobApplication, init func(*JobApplication), assign func(*JobApplication, *File)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*JobApplication)
-	for i := range nodes {
-		fk := nodes[i].FileID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(file.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "file_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 
 func (jaq *JobApplicationQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := jaq.querySpec()
@@ -606,9 +534,6 @@ func (jaq *JobApplicationQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if jaq.withJob != nil {
 			_spec.Node.AddColumnOnce(jobapplication.FieldJobID)
-		}
-		if jaq.withFile != nil {
-			_spec.Node.AddColumnOnce(jobapplication.FieldFileID)
 		}
 	}
 	if ps := jaq.predicates; len(ps) > 0 {

@@ -1,22 +1,22 @@
-package factory
+package repository
 
 import (
 	"automatic-doodle/ent"
 	"sync"
 )
 
-type Factory struct {
+type Repository struct {
 	db ent.Client
 }
 
 var (
-	module     Factory
+	module     Repository
 	moduleOnce sync.Once
 )
 
-func New() *Factory {
+func New() *Repository {
 	moduleOnce.Do(func() {
-		module = Factory{}
+		module = Repository{}
 	})
 	return &module
 }

@@ -70,9 +70,9 @@ func JobID(v uuid.UUID) predicate.JobApplication {
 	return predicate.JobApplication(sql.FieldEQ(FieldJobID, v))
 }
 
-// FileID applies equality check predicate on the "file_id" field. It's identical to FileIDEQ.
-func FileID(v uuid.UUID) predicate.JobApplication {
-	return predicate.JobApplication(sql.FieldEQ(FieldFileID, v))
+// ObjectKey applies equality check predicate on the "object_key" field. It's identical to ObjectKeyEQ.
+func ObjectKey(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldEQ(FieldObjectKey, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.
@@ -180,24 +180,79 @@ func JobIDNotIn(vs ...uuid.UUID) predicate.JobApplication {
 	return predicate.JobApplication(sql.FieldNotIn(FieldJobID, vs...))
 }
 
-// FileIDEQ applies the EQ predicate on the "file_id" field.
-func FileIDEQ(v uuid.UUID) predicate.JobApplication {
-	return predicate.JobApplication(sql.FieldEQ(FieldFileID, v))
+// ObjectKeyEQ applies the EQ predicate on the "object_key" field.
+func ObjectKeyEQ(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldEQ(FieldObjectKey, v))
 }
 
-// FileIDNEQ applies the NEQ predicate on the "file_id" field.
-func FileIDNEQ(v uuid.UUID) predicate.JobApplication {
-	return predicate.JobApplication(sql.FieldNEQ(FieldFileID, v))
+// ObjectKeyNEQ applies the NEQ predicate on the "object_key" field.
+func ObjectKeyNEQ(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldNEQ(FieldObjectKey, v))
 }
 
-// FileIDIn applies the In predicate on the "file_id" field.
-func FileIDIn(vs ...uuid.UUID) predicate.JobApplication {
-	return predicate.JobApplication(sql.FieldIn(FieldFileID, vs...))
+// ObjectKeyIn applies the In predicate on the "object_key" field.
+func ObjectKeyIn(vs ...string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldIn(FieldObjectKey, vs...))
 }
 
-// FileIDNotIn applies the NotIn predicate on the "file_id" field.
-func FileIDNotIn(vs ...uuid.UUID) predicate.JobApplication {
-	return predicate.JobApplication(sql.FieldNotIn(FieldFileID, vs...))
+// ObjectKeyNotIn applies the NotIn predicate on the "object_key" field.
+func ObjectKeyNotIn(vs ...string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldNotIn(FieldObjectKey, vs...))
+}
+
+// ObjectKeyGT applies the GT predicate on the "object_key" field.
+func ObjectKeyGT(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldGT(FieldObjectKey, v))
+}
+
+// ObjectKeyGTE applies the GTE predicate on the "object_key" field.
+func ObjectKeyGTE(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldGTE(FieldObjectKey, v))
+}
+
+// ObjectKeyLT applies the LT predicate on the "object_key" field.
+func ObjectKeyLT(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldLT(FieldObjectKey, v))
+}
+
+// ObjectKeyLTE applies the LTE predicate on the "object_key" field.
+func ObjectKeyLTE(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldLTE(FieldObjectKey, v))
+}
+
+// ObjectKeyContains applies the Contains predicate on the "object_key" field.
+func ObjectKeyContains(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldContains(FieldObjectKey, v))
+}
+
+// ObjectKeyHasPrefix applies the HasPrefix predicate on the "object_key" field.
+func ObjectKeyHasPrefix(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldHasPrefix(FieldObjectKey, v))
+}
+
+// ObjectKeyHasSuffix applies the HasSuffix predicate on the "object_key" field.
+func ObjectKeyHasSuffix(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldHasSuffix(FieldObjectKey, v))
+}
+
+// ObjectKeyIsNil applies the IsNil predicate on the "object_key" field.
+func ObjectKeyIsNil() predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldIsNull(FieldObjectKey))
+}
+
+// ObjectKeyNotNil applies the NotNil predicate on the "object_key" field.
+func ObjectKeyNotNil() predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldNotNull(FieldObjectKey))
+}
+
+// ObjectKeyEqualFold applies the EqualFold predicate on the "object_key" field.
+func ObjectKeyEqualFold(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldEqualFold(FieldObjectKey, v))
+}
+
+// ObjectKeyContainsFold applies the ContainsFold predicate on the "object_key" field.
+func ObjectKeyContainsFold(v string) predicate.JobApplication {
+	return predicate.JobApplication(sql.FieldContainsFold(FieldObjectKey, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.
@@ -238,29 +293,6 @@ func HasJob() predicate.JobApplication {
 func HasJobWith(preds ...predicate.Job) predicate.JobApplication {
 	return predicate.JobApplication(func(s *sql.Selector) {
 		step := newJobStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasFile applies the HasEdge predicate on the "file" edge.
-func HasFile() predicate.JobApplication {
-	return predicate.JobApplication(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, FileTable, FileColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasFileWith applies the HasEdge predicate on the "file" edge with a given conditions (other predicates).
-func HasFileWith(preds ...predicate.File) predicate.JobApplication {
-	return predicate.JobApplication(func(s *sql.Selector) {
-		step := newFileStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

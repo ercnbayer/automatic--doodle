@@ -39,24 +39,21 @@ const (
 // FileMutation represents an operation that mutates the File nodes in the graph.
 type FileMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *uuid.UUID
-	filename       *string
-	extention      *string
-	created_by_id  *uuid.UUID
-	created_at     *time.Time
-	_type          *file.Type
-	bucket         *string
-	updated_at     *time.Time
-	content_type   *string
-	clearedFields  map[string]struct{}
-	jobappl        map[uuid.UUID]struct{}
-	removedjobappl map[uuid.UUID]struct{}
-	clearedjobappl bool
-	done           bool
-	oldValue       func(context.Context) (*File, error)
-	predicates     []predicate.File
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	filename      *string
+	extention     *string
+	created_by_id *uuid.UUID
+	created_at    *time.Time
+	_type         *file.Type
+	bucket        *string
+	updated_at    *time.Time
+	content_type  *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*File, error)
+	predicates    []predicate.File
 }
 
 var _ ent.Mutation = (*FileMutation)(nil)
@@ -451,60 +448,6 @@ func (m *FileMutation) ResetContentType() {
 	m.content_type = nil
 }
 
-// AddJobapplIDs adds the "jobappl" edge to the JobApplication entity by ids.
-func (m *FileMutation) AddJobapplIDs(ids ...uuid.UUID) {
-	if m.jobappl == nil {
-		m.jobappl = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.jobappl[ids[i]] = struct{}{}
-	}
-}
-
-// ClearJobappl clears the "jobappl" edge to the JobApplication entity.
-func (m *FileMutation) ClearJobappl() {
-	m.clearedjobappl = true
-}
-
-// JobapplCleared reports if the "jobappl" edge to the JobApplication entity was cleared.
-func (m *FileMutation) JobapplCleared() bool {
-	return m.clearedjobappl
-}
-
-// RemoveJobapplIDs removes the "jobappl" edge to the JobApplication entity by IDs.
-func (m *FileMutation) RemoveJobapplIDs(ids ...uuid.UUID) {
-	if m.removedjobappl == nil {
-		m.removedjobappl = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.jobappl, ids[i])
-		m.removedjobappl[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedJobappl returns the removed IDs of the "jobappl" edge to the JobApplication entity.
-func (m *FileMutation) RemovedJobapplIDs() (ids []uuid.UUID) {
-	for id := range m.removedjobappl {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// JobapplIDs returns the "jobappl" edge IDs in the mutation.
-func (m *FileMutation) JobapplIDs() (ids []uuid.UUID) {
-	for id := range m.jobappl {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetJobappl resets all changes to the "jobappl" edge.
-func (m *FileMutation) ResetJobappl() {
-	m.jobappl = nil
-	m.clearedjobappl = false
-	m.removedjobappl = nil
-}
-
 // Where appends a list predicates to the FileMutation builder.
 func (m *FileMutation) Where(ps ...predicate.File) {
 	m.predicates = append(m.predicates, ps...)
@@ -757,85 +700,49 @@ func (m *FileMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.jobappl != nil {
-		edges = append(edges, file.EdgeJobappl)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *FileMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case file.EdgeJobappl:
-		ids := make([]ent.Value, 0, len(m.jobappl))
-		for id := range m.jobappl {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.removedjobappl != nil {
-		edges = append(edges, file.EdgeJobappl)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *FileMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case file.EdgeJobappl:
-		ids := make([]ent.Value, 0, len(m.removedjobappl))
-		for id := range m.removedjobappl {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedjobappl {
-		edges = append(edges, file.EdgeJobappl)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *FileMutation) EdgeCleared(name string) bool {
-	switch name {
-	case file.EdgeJobappl:
-		return m.clearedjobappl
-	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *FileMutation) ClearEdge(name string) error {
-	switch name {
-	}
 	return fmt.Errorf("unknown File unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *FileMutation) ResetEdge(name string) error {
-	switch name {
-	case file.EdgeJobappl:
-		m.ResetJobappl()
-		return nil
-	}
 	return fmt.Errorf("unknown File edge %s", name)
 }
 
@@ -1677,13 +1584,12 @@ type JobApplicationMutation struct {
 	typ           string
 	id            *uuid.UUID
 	description   *string
+	object_key    *string
 	clearedFields map[string]struct{}
 	user          *uuid.UUID
 	cleareduser   bool
 	job           *uuid.UUID
 	clearedjob    bool
-	file          *uuid.UUID
-	clearedfile   bool
 	done          bool
 	oldValue      func(context.Context) (*JobApplication, error)
 	predicates    []predicate.JobApplication
@@ -1901,40 +1807,53 @@ func (m *JobApplicationMutation) ResetJobID() {
 	m.job = nil
 }
 
-// SetFileID sets the "file_id" field.
-func (m *JobApplicationMutation) SetFileID(u uuid.UUID) {
-	m.file = &u
+// SetObjectKey sets the "object_key" field.
+func (m *JobApplicationMutation) SetObjectKey(s string) {
+	m.object_key = &s
 }
 
-// FileID returns the value of the "file_id" field in the mutation.
-func (m *JobApplicationMutation) FileID() (r uuid.UUID, exists bool) {
-	v := m.file
+// ObjectKey returns the value of the "object_key" field in the mutation.
+func (m *JobApplicationMutation) ObjectKey() (r string, exists bool) {
+	v := m.object_key
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldFileID returns the old "file_id" field's value of the JobApplication entity.
+// OldObjectKey returns the old "object_key" field's value of the JobApplication entity.
 // If the JobApplication object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *JobApplicationMutation) OldFileID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *JobApplicationMutation) OldObjectKey(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFileID is only allowed on UpdateOne operations")
+		return v, errors.New("OldObjectKey is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFileID requires an ID field in the mutation")
+		return v, errors.New("OldObjectKey requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFileID: %w", err)
+		return v, fmt.Errorf("querying old value for OldObjectKey: %w", err)
 	}
-	return oldValue.FileID, nil
+	return oldValue.ObjectKey, nil
 }
 
-// ResetFileID resets all changes to the "file_id" field.
-func (m *JobApplicationMutation) ResetFileID() {
-	m.file = nil
+// ClearObjectKey clears the value of the "object_key" field.
+func (m *JobApplicationMutation) ClearObjectKey() {
+	m.object_key = nil
+	m.clearedFields[jobapplication.FieldObjectKey] = struct{}{}
+}
+
+// ObjectKeyCleared returns if the "object_key" field was cleared in this mutation.
+func (m *JobApplicationMutation) ObjectKeyCleared() bool {
+	_, ok := m.clearedFields[jobapplication.FieldObjectKey]
+	return ok
+}
+
+// ResetObjectKey resets all changes to the "object_key" field.
+func (m *JobApplicationMutation) ResetObjectKey() {
+	m.object_key = nil
+	delete(m.clearedFields, jobapplication.FieldObjectKey)
 }
 
 // ClearUser clears the "user" edge to the User entity.
@@ -1991,33 +1910,6 @@ func (m *JobApplicationMutation) ResetJob() {
 	m.clearedjob = false
 }
 
-// ClearFile clears the "file" edge to the File entity.
-func (m *JobApplicationMutation) ClearFile() {
-	m.clearedfile = true
-	m.clearedFields[jobapplication.FieldFileID] = struct{}{}
-}
-
-// FileCleared reports if the "file" edge to the File entity was cleared.
-func (m *JobApplicationMutation) FileCleared() bool {
-	return m.clearedfile
-}
-
-// FileIDs returns the "file" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// FileID instead. It exists only for internal usage by the builders.
-func (m *JobApplicationMutation) FileIDs() (ids []uuid.UUID) {
-	if id := m.file; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetFile resets all changes to the "file" edge.
-func (m *JobApplicationMutation) ResetFile() {
-	m.file = nil
-	m.clearedfile = false
-}
-
 // Where appends a list predicates to the JobApplicationMutation builder.
 func (m *JobApplicationMutation) Where(ps ...predicate.JobApplication) {
 	m.predicates = append(m.predicates, ps...)
@@ -2062,8 +1954,8 @@ func (m *JobApplicationMutation) Fields() []string {
 	if m.job != nil {
 		fields = append(fields, jobapplication.FieldJobID)
 	}
-	if m.file != nil {
-		fields = append(fields, jobapplication.FieldFileID)
+	if m.object_key != nil {
+		fields = append(fields, jobapplication.FieldObjectKey)
 	}
 	return fields
 }
@@ -2079,8 +1971,8 @@ func (m *JobApplicationMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case jobapplication.FieldJobID:
 		return m.JobID()
-	case jobapplication.FieldFileID:
-		return m.FileID()
+	case jobapplication.FieldObjectKey:
+		return m.ObjectKey()
 	}
 	return nil, false
 }
@@ -2096,8 +1988,8 @@ func (m *JobApplicationMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldUserID(ctx)
 	case jobapplication.FieldJobID:
 		return m.OldJobID(ctx)
-	case jobapplication.FieldFileID:
-		return m.OldFileID(ctx)
+	case jobapplication.FieldObjectKey:
+		return m.OldObjectKey(ctx)
 	}
 	return nil, fmt.Errorf("unknown JobApplication field %s", name)
 }
@@ -2128,12 +2020,12 @@ func (m *JobApplicationMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetJobID(v)
 		return nil
-	case jobapplication.FieldFileID:
-		v, ok := value.(uuid.UUID)
+	case jobapplication.FieldObjectKey:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetFileID(v)
+		m.SetObjectKey(v)
 		return nil
 	}
 	return fmt.Errorf("unknown JobApplication field %s", name)
@@ -2164,7 +2056,11 @@ func (m *JobApplicationMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *JobApplicationMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(jobapplication.FieldObjectKey) {
+		fields = append(fields, jobapplication.FieldObjectKey)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2177,6 +2073,11 @@ func (m *JobApplicationMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *JobApplicationMutation) ClearField(name string) error {
+	switch name {
+	case jobapplication.FieldObjectKey:
+		m.ClearObjectKey()
+		return nil
+	}
 	return fmt.Errorf("unknown JobApplication nullable field %s", name)
 }
 
@@ -2193,8 +2094,8 @@ func (m *JobApplicationMutation) ResetField(name string) error {
 	case jobapplication.FieldJobID:
 		m.ResetJobID()
 		return nil
-	case jobapplication.FieldFileID:
-		m.ResetFileID()
+	case jobapplication.FieldObjectKey:
+		m.ResetObjectKey()
 		return nil
 	}
 	return fmt.Errorf("unknown JobApplication field %s", name)
@@ -2202,15 +2103,12 @@ func (m *JobApplicationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *JobApplicationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, jobapplication.EdgeUser)
 	}
 	if m.job != nil {
 		edges = append(edges, jobapplication.EdgeJob)
-	}
-	if m.file != nil {
-		edges = append(edges, jobapplication.EdgeFile)
 	}
 	return edges
 }
@@ -2227,17 +2125,13 @@ func (m *JobApplicationMutation) AddedIDs(name string) []ent.Value {
 		if id := m.job; id != nil {
 			return []ent.Value{*id}
 		}
-	case jobapplication.EdgeFile:
-		if id := m.file; id != nil {
-			return []ent.Value{*id}
-		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *JobApplicationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -2249,15 +2143,12 @@ func (m *JobApplicationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *JobApplicationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, jobapplication.EdgeUser)
 	}
 	if m.clearedjob {
 		edges = append(edges, jobapplication.EdgeJob)
-	}
-	if m.clearedfile {
-		edges = append(edges, jobapplication.EdgeFile)
 	}
 	return edges
 }
@@ -2270,8 +2161,6 @@ func (m *JobApplicationMutation) EdgeCleared(name string) bool {
 		return m.cleareduser
 	case jobapplication.EdgeJob:
 		return m.clearedjob
-	case jobapplication.EdgeFile:
-		return m.clearedfile
 	}
 	return false
 }
@@ -2286,9 +2175,6 @@ func (m *JobApplicationMutation) ClearEdge(name string) error {
 	case jobapplication.EdgeJob:
 		m.ClearJob()
 		return nil
-	case jobapplication.EdgeFile:
-		m.ClearFile()
-		return nil
 	}
 	return fmt.Errorf("unknown JobApplication unique edge %s", name)
 }
@@ -2302,9 +2188,6 @@ func (m *JobApplicationMutation) ResetEdge(name string) error {
 		return nil
 	case jobapplication.EdgeJob:
 		m.ResetJob()
-		return nil
-	case jobapplication.EdgeFile:
-		m.ResetFile()
 		return nil
 	}
 	return fmt.Errorf("unknown JobApplication edge %s", name)

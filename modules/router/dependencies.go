@@ -18,3 +18,7 @@ type FileHandler interface {
 type JobHandler interface {
 	GetRoutes() []types.HandlerItem
 }
+
+type JobApplHandler interface {
+	GetRoutes() []types.HandlerItem
+}

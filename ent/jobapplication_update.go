@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/predicate"
@@ -73,17 +72,23 @@ func (jau *JobApplicationUpdate) SetNillableJobID(u *uuid.UUID) *JobApplicationU
 	return jau
 }
 
-// SetFileID sets the "file_id" field.
-func (jau *JobApplicationUpdate) SetFileID(u uuid.UUID) *JobApplicationUpdate {
-	jau.mutation.SetFileID(u)
+// SetObjectKey sets the "object_key" field.
+func (jau *JobApplicationUpdate) SetObjectKey(s string) *JobApplicationUpdate {
+	jau.mutation.SetObjectKey(s)
 	return jau
 }
 
-// SetNillableFileID sets the "file_id" field if the given value is not nil.
-func (jau *JobApplicationUpdate) SetNillableFileID(u *uuid.UUID) *JobApplicationUpdate {
-	if u != nil {
-		jau.SetFileID(*u)
+// SetNillableObjectKey sets the "object_key" field if the given value is not nil.
+func (jau *JobApplicationUpdate) SetNillableObjectKey(s *string) *JobApplicationUpdate {
+	if s != nil {
+		jau.SetObjectKey(*s)
 	}
+	return jau
+}
+
+// ClearObjectKey clears the value of the "object_key" field.
+func (jau *JobApplicationUpdate) ClearObjectKey() *JobApplicationUpdate {
+	jau.mutation.ClearObjectKey()
 	return jau
 }
 
@@ -95,11 +100,6 @@ func (jau *JobApplicationUpdate) SetUser(u *User) *JobApplicationUpdate {
 // SetJob sets the "job" edge to the Job entity.
 func (jau *JobApplicationUpdate) SetJob(j *Job) *JobApplicationUpdate {
 	return jau.SetJobID(j.ID)
-}
-
-// SetFile sets the "file" edge to the File entity.
-func (jau *JobApplicationUpdate) SetFile(f *File) *JobApplicationUpdate {
-	return jau.SetFileID(f.ID)
 }
 
 // Mutation returns the JobApplicationMutation object of the builder.
@@ -116,12 +116,6 @@ func (jau *JobApplicationUpdate) ClearUser() *JobApplicationUpdate {
 // ClearJob clears the "job" edge to the Job entity.
 func (jau *JobApplicationUpdate) ClearJob() *JobApplicationUpdate {
 	jau.mutation.ClearJob()
-	return jau
-}
-
-// ClearFile clears the "file" edge to the File entity.
-func (jau *JobApplicationUpdate) ClearFile() *JobApplicationUpdate {
-	jau.mutation.ClearFile()
 	return jau
 }
 
@@ -165,9 +159,6 @@ func (jau *JobApplicationUpdate) check() error {
 	if jau.mutation.JobCleared() && len(jau.mutation.JobIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "JobApplication.job"`)
 	}
-	if jau.mutation.FileCleared() && len(jau.mutation.FileIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "JobApplication.file"`)
-	}
 	return nil
 }
 
@@ -185,6 +176,12 @@ func (jau *JobApplicationUpdate) sqlSave(ctx context.Context) (n int, err error)
 	}
 	if value, ok := jau.mutation.Description(); ok {
 		_spec.SetField(jobapplication.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := jau.mutation.ObjectKey(); ok {
+		_spec.SetField(jobapplication.FieldObjectKey, field.TypeString, value)
+	}
+	if jau.mutation.ObjectKeyCleared() {
+		_spec.ClearField(jobapplication.FieldObjectKey, field.TypeString)
 	}
 	if jau.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -237,35 +234,6 @@ func (jau *JobApplicationUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(job.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if jau.mutation.FileCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   jobapplication.FileTable,
-			Columns: []string{jobapplication.FileColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := jau.mutation.FileIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   jobapplication.FileTable,
-			Columns: []string{jobapplication.FileColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -335,17 +303,23 @@ func (jauo *JobApplicationUpdateOne) SetNillableJobID(u *uuid.UUID) *JobApplicat
 	return jauo
 }
 
-// SetFileID sets the "file_id" field.
-func (jauo *JobApplicationUpdateOne) SetFileID(u uuid.UUID) *JobApplicationUpdateOne {
-	jauo.mutation.SetFileID(u)
+// SetObjectKey sets the "object_key" field.
+func (jauo *JobApplicationUpdateOne) SetObjectKey(s string) *JobApplicationUpdateOne {
+	jauo.mutation.SetObjectKey(s)
 	return jauo
 }
 
-// SetNillableFileID sets the "file_id" field if the given value is not nil.
-func (jauo *JobApplicationUpdateOne) SetNillableFileID(u *uuid.UUID) *JobApplicationUpdateOne {
-	if u != nil {
-		jauo.SetFileID(*u)
+// SetNillableObjectKey sets the "object_key" field if the given value is not nil.
+func (jauo *JobApplicationUpdateOne) SetNillableObjectKey(s *string) *JobApplicationUpdateOne {
+	if s != nil {
+		jauo.SetObjectKey(*s)
 	}
+	return jauo
+}
+
+// ClearObjectKey clears the value of the "object_key" field.
+func (jauo *JobApplicationUpdateOne) ClearObjectKey() *JobApplicationUpdateOne {
+	jauo.mutation.ClearObjectKey()
 	return jauo
 }
 
@@ -357,11 +331,6 @@ func (jauo *JobApplicationUpdateOne) SetUser(u *User) *JobApplicationUpdateOne {
 // SetJob sets the "job" edge to the Job entity.
 func (jauo *JobApplicationUpdateOne) SetJob(j *Job) *JobApplicationUpdateOne {
 	return jauo.SetJobID(j.ID)
-}
-
-// SetFile sets the "file" edge to the File entity.
-func (jauo *JobApplicationUpdateOne) SetFile(f *File) *JobApplicationUpdateOne {
-	return jauo.SetFileID(f.ID)
 }
 
 // Mutation returns the JobApplicationMutation object of the builder.
@@ -378,12 +347,6 @@ func (jauo *JobApplicationUpdateOne) ClearUser() *JobApplicationUpdateOne {
 // ClearJob clears the "job" edge to the Job entity.
 func (jauo *JobApplicationUpdateOne) ClearJob() *JobApplicationUpdateOne {
 	jauo.mutation.ClearJob()
-	return jauo
-}
-
-// ClearFile clears the "file" edge to the File entity.
-func (jauo *JobApplicationUpdateOne) ClearFile() *JobApplicationUpdateOne {
-	jauo.mutation.ClearFile()
 	return jauo
 }
 
@@ -440,9 +403,6 @@ func (jauo *JobApplicationUpdateOne) check() error {
 	if jauo.mutation.JobCleared() && len(jauo.mutation.JobIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "JobApplication.job"`)
 	}
-	if jauo.mutation.FileCleared() && len(jauo.mutation.FileIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "JobApplication.file"`)
-	}
 	return nil
 }
 
@@ -477,6 +437,12 @@ func (jauo *JobApplicationUpdateOne) sqlSave(ctx context.Context) (_node *JobApp
 	}
 	if value, ok := jauo.mutation.Description(); ok {
 		_spec.SetField(jobapplication.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := jauo.mutation.ObjectKey(); ok {
+		_spec.SetField(jobapplication.FieldObjectKey, field.TypeString, value)
+	}
+	if jauo.mutation.ObjectKeyCleared() {
+		_spec.ClearField(jobapplication.FieldObjectKey, field.TypeString)
 	}
 	if jauo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -529,35 +495,6 @@ func (jauo *JobApplicationUpdateOne) sqlSave(ctx context.Context) (_node *JobApp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(job.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if jauo.mutation.FileCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   jobapplication.FileTable,
-			Columns: []string{jobapplication.FileColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := jauo.mutation.FileIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   jobapplication.FileTable,
-			Columns: []string{jobapplication.FileColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

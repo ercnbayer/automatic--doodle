@@ -33,29 +33,8 @@ type File struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// ContentType holds the value of the "content_type" field.
-	ContentType string `json:"content_type,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the FileQuery when eager-loading is set.
-	Edges        FileEdges `json:"edges"`
+	ContentType  string `json:"content_type,omitempty"`
 	selectValues sql.SelectValues
-}
-
-// FileEdges holds the relations/edges for other nodes in the graph.
-type FileEdges struct {
-	// Jobappl holds the value of the jobappl edge.
-	Jobappl []*JobApplication `json:"jobappl,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// JobapplOrErr returns the Jobappl value or an error if the edge
-// was not loaded in eager-loading.
-func (e FileEdges) JobapplOrErr() ([]*JobApplication, error) {
-	if e.loadedTypes[0] {
-		return e.Jobappl, nil
-	}
-	return nil, &NotLoadedError{edge: "jobappl"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -149,11 +128,6 @@ func (f *File) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (f *File) Value(name string) (ent.Value, error) {
 	return f.selectValues.Get(name)
-}
-
-// QueryJobappl queries the "jobappl" edge of the File entity.
-func (f *File) QueryJobappl() *JobApplicationQuery {
-	return NewFileClient(f.config).QueryJobappl(f)
 }
 
 // Update returns a builder for updating this File.

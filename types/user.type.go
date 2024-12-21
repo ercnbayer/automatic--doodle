@@ -35,6 +35,10 @@ type UserPublicDetails struct {
 	LastName     string       `json:"lastName"`
 	ProfilePhoto FileResponse `json:"profilePhoto"`
 }
+type UserPublicJobAppl struct {
+	Id           uuid.UUID              `json:"id"`
+	UploadedFile CreateUploadUrlRequest `json:"attachment"`
+}
 
 func UserPublicDetailsFromUser(u AuthenticatedUser) UserPublicDetails {
 	return UserPublicDetails{

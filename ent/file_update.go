@@ -4,7 +4,6 @@ package ent
 
 import (
 	"automatic-doodle/ent/file"
-	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/predicate"
 	"context"
 	"errors"
@@ -120,45 +119,9 @@ func (fu *FileUpdate) SetNillableContentType(s *string) *FileUpdate {
 	return fu
 }
 
-// AddJobapplIDs adds the "jobappl" edge to the JobApplication entity by IDs.
-func (fu *FileUpdate) AddJobapplIDs(ids ...uuid.UUID) *FileUpdate {
-	fu.mutation.AddJobapplIDs(ids...)
-	return fu
-}
-
-// AddJobappl adds the "jobappl" edges to the JobApplication entity.
-func (fu *FileUpdate) AddJobappl(j ...*JobApplication) *FileUpdate {
-	ids := make([]uuid.UUID, len(j))
-	for i := range j {
-		ids[i] = j[i].ID
-	}
-	return fu.AddJobapplIDs(ids...)
-}
-
 // Mutation returns the FileMutation object of the builder.
 func (fu *FileUpdate) Mutation() *FileMutation {
 	return fu.mutation
-}
-
-// ClearJobappl clears all "jobappl" edges to the JobApplication entity.
-func (fu *FileUpdate) ClearJobappl() *FileUpdate {
-	fu.mutation.ClearJobappl()
-	return fu
-}
-
-// RemoveJobapplIDs removes the "jobappl" edge to JobApplication entities by IDs.
-func (fu *FileUpdate) RemoveJobapplIDs(ids ...uuid.UUID) *FileUpdate {
-	fu.mutation.RemoveJobapplIDs(ids...)
-	return fu
-}
-
-// RemoveJobappl removes "jobappl" edges to JobApplication entities.
-func (fu *FileUpdate) RemoveJobappl(j ...*JobApplication) *FileUpdate {
-	ids := make([]uuid.UUID, len(j))
-	for i := range j {
-		ids[i] = j[i].ID
-	}
-	return fu.RemoveJobapplIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -259,51 +222,6 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := fu.mutation.ContentType(); ok {
 		_spec.SetField(file.FieldContentType, field.TypeString, value)
-	}
-	if fu.mutation.JobapplCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   file.JobapplTable,
-			Columns: []string{file.JobapplColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(jobapplication.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := fu.mutation.RemovedJobapplIDs(); len(nodes) > 0 && !fu.mutation.JobapplCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   file.JobapplTable,
-			Columns: []string{file.JobapplColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(jobapplication.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := fu.mutation.JobapplIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   file.JobapplTable,
-			Columns: []string{file.JobapplColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(jobapplication.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -415,45 +333,9 @@ func (fuo *FileUpdateOne) SetNillableContentType(s *string) *FileUpdateOne {
 	return fuo
 }
 
-// AddJobapplIDs adds the "jobappl" edge to the JobApplication entity by IDs.
-func (fuo *FileUpdateOne) AddJobapplIDs(ids ...uuid.UUID) *FileUpdateOne {
-	fuo.mutation.AddJobapplIDs(ids...)
-	return fuo
-}
-
-// AddJobappl adds the "jobappl" edges to the JobApplication entity.
-func (fuo *FileUpdateOne) AddJobappl(j ...*JobApplication) *FileUpdateOne {
-	ids := make([]uuid.UUID, len(j))
-	for i := range j {
-		ids[i] = j[i].ID
-	}
-	return fuo.AddJobapplIDs(ids...)
-}
-
 // Mutation returns the FileMutation object of the builder.
 func (fuo *FileUpdateOne) Mutation() *FileMutation {
 	return fuo.mutation
-}
-
-// ClearJobappl clears all "jobappl" edges to the JobApplication entity.
-func (fuo *FileUpdateOne) ClearJobappl() *FileUpdateOne {
-	fuo.mutation.ClearJobappl()
-	return fuo
-}
-
-// RemoveJobapplIDs removes the "jobappl" edge to JobApplication entities by IDs.
-func (fuo *FileUpdateOne) RemoveJobapplIDs(ids ...uuid.UUID) *FileUpdateOne {
-	fuo.mutation.RemoveJobapplIDs(ids...)
-	return fuo
-}
-
-// RemoveJobappl removes "jobappl" edges to JobApplication entities.
-func (fuo *FileUpdateOne) RemoveJobappl(j ...*JobApplication) *FileUpdateOne {
-	ids := make([]uuid.UUID, len(j))
-	for i := range j {
-		ids[i] = j[i].ID
-	}
-	return fuo.RemoveJobapplIDs(ids...)
 }
 
 // Where appends a list predicates to the FileUpdate builder.
@@ -584,51 +466,6 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	}
 	if value, ok := fuo.mutation.ContentType(); ok {
 		_spec.SetField(file.FieldContentType, field.TypeString, value)
-	}
-	if fuo.mutation.JobapplCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   file.JobapplTable,
-			Columns: []string{file.JobapplColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(jobapplication.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := fuo.mutation.RemovedJobapplIDs(); len(nodes) > 0 && !fuo.mutation.JobapplCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   file.JobapplTable,
-			Columns: []string{file.JobapplColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(jobapplication.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := fuo.mutation.JobapplIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   file.JobapplTable,
-			Columns: []string{file.JobapplColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(jobapplication.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &File{config: fuo.config}
 	_spec.Assign = _node.assignValues

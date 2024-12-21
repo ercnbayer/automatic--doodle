@@ -6,7 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func (f *Factory) Create(description string, pFileID *uuid.UUID, jobID uuid.UUID, userID uuid.UUID) *ent.JobApplicationCreate {
+func (f *Factory) Create(description string, pFileKey *string, jobID uuid.UUID, userID uuid.UUID) *ent.JobApplicationCreate {
 
-	item = f.db.JobApplication.Create().SetDescription(description).SetJobID(jobID).SetUserID(userID)
+	var item *ent.JobApplicationCreate
+
+	item = f.db.JobApplication.Create().SetDescription(description).SetJobID(jobID).SetUserID(userID).SetNillableObjectKey(pFileKey)
+
+	return item
 }

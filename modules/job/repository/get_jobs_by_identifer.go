@@ -13,7 +13,7 @@ func (repo *Repository) GetByIdentifier(
 	items, err := repo.db.Job.Query().
 		Where(
 			job.Or(
-				job.JobType(identifier),
+				job.JobTypeContains(identifier),
 
 				job.DescriptionContains(identifier),
 			),

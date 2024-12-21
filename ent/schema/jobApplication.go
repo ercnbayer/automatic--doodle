@@ -23,8 +23,7 @@ func (JobApplication) Fields() []ent.Field {
 
 		field.UUID("job_id", uuid.UUID{}), // Foreign key to Job
 
-		field.UUID("file_id", uuid.UUID{}), // Foreign key to File
-
+		field.String("object_key").Optional().Unique(),
 	}
 }
 
@@ -43,9 +42,6 @@ func (JobApplication) Edges() []ent.Edge {
 			Required().Unique(),
 
 		// File edge: connecting job application with file
-		edge.From("file", File.Type).
-			Ref("jobappl").
-			Field("file_id"). // Foreign key
-			Required().Unique(),
+
 	}
 }

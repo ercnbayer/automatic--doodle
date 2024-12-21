@@ -17,7 +17,8 @@ func (r *Rest) loginUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	response, err := r.authenticationService.Login(&payload)
+	response, err := r.authenticationService.
+		Login(&payload)
 
 	if err != nil {
 		return err

@@ -17,6 +17,7 @@ func New(
 	profileHandler ProfileHandler,
 	fileHandler FileHandler,
 	jobHandler JobHandler,
+	jobApplHandler JobApplHandler,
 ) *Router {
 	moduleOnce.Do(func() {
 		module = Router{
@@ -26,6 +27,7 @@ func New(
 				profileHandler.GetRoutes(),
 				fileHandler.GetRoutes(),
 				jobHandler.GetRoutes(),
+				jobApplHandler.GetRoutes(),
 			),
 		}
 	})

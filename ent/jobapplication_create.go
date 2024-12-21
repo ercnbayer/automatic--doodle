@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
 	"automatic-doodle/ent/user"
@@ -41,9 +40,17 @@ func (jac *JobApplicationCreate) SetJobID(u uuid.UUID) *JobApplicationCreate {
 	return jac
 }
 
-// SetFileID sets the "file_id" field.
-func (jac *JobApplicationCreate) SetFileID(u uuid.UUID) *JobApplicationCreate {
-	jac.mutation.SetFileID(u)
+// SetObjectKey sets the "object_key" field.
+func (jac *JobApplicationCreate) SetObjectKey(s string) *JobApplicationCreate {
+	jac.mutation.SetObjectKey(s)
+	return jac
+}
+
+// SetNillableObjectKey sets the "object_key" field if the given value is not nil.
+func (jac *JobApplicationCreate) SetNillableObjectKey(s *string) *JobApplicationCreate {
+	if s != nil {
+		jac.SetObjectKey(*s)
+	}
 	return jac
 }
 
@@ -69,11 +76,6 @@ func (jac *JobApplicationCreate) SetUser(u *User) *JobApplicationCreate {
 // SetJob sets the "job" edge to the Job entity.
 func (jac *JobApplicationCreate) SetJob(j *Job) *JobApplicationCreate {
 	return jac.SetJobID(j.ID)
-}
-
-// SetFile sets the "file" edge to the File entity.
-func (jac *JobApplicationCreate) SetFile(f *File) *JobApplicationCreate {
-	return jac.SetFileID(f.ID)
 }
 
 // Mutation returns the JobApplicationMutation object of the builder.
@@ -133,17 +135,11 @@ func (jac *JobApplicationCreate) check() error {
 	if _, ok := jac.mutation.JobID(); !ok {
 		return &ValidationError{Name: "job_id", err: errors.New(`ent: missing required field "JobApplication.job_id"`)}
 	}
-	if _, ok := jac.mutation.FileID(); !ok {
-		return &ValidationError{Name: "file_id", err: errors.New(`ent: missing required field "JobApplication.file_id"`)}
-	}
 	if len(jac.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "JobApplication.user"`)}
 	}
 	if len(jac.mutation.JobIDs()) == 0 {
 		return &ValidationError{Name: "job", err: errors.New(`ent: missing required edge "JobApplication.job"`)}
-	}
-	if len(jac.mutation.FileIDs()) == 0 {
-		return &ValidationError{Name: "file", err: errors.New(`ent: missing required edge "JobApplication.file"`)}
 	}
 	return nil
 }
@@ -184,6 +180,10 @@ func (jac *JobApplicationCreate) createSpec() (*JobApplication, *sqlgraph.Create
 		_spec.SetField(jobapplication.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
+	if value, ok := jac.mutation.ObjectKey(); ok {
+		_spec.SetField(jobapplication.FieldObjectKey, field.TypeString, value)
+		_node.ObjectKey = value
+	}
 	if nodes := jac.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -216,23 +216,6 @@ func (jac *JobApplicationCreate) createSpec() (*JobApplication, *sqlgraph.Create
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.JobID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := jac.mutation.FileIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   jobapplication.FileTable,
-			Columns: []string{jobapplication.FileColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.FileID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

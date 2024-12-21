@@ -11,6 +11,8 @@ import (
 	userRest "automatic-doodle/modules/user/rest"
 	"automatic-doodle/pkg/logger"
 
+	jobApplRest "automatic-doodle/modules/jobAppl/rest"
+
 	"github.com/google/wire"
 )
 
@@ -39,6 +41,7 @@ var (
 		wire.Bind(new(ProfileRest.AuthMiddleware), new(*authenticationMiddleware.Middleware)),
 		wire.Bind(new(FileRest.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
 		wire.Bind(new(jobRest.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
+		wire.Bind(new(jobApplRest.AuthMiddleware), new(*authenticationMiddleware.Middleware)),
 
 		wire.InterfaceValue(new(authenticationMiddleware.Logger), logger.New("Authentication Middleware Logger")),
 	)

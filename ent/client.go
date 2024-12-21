@@ -347,22 +347,6 @@ func (c *FileClient) GetX(ctx context.Context, id uuid.UUID) *File {
 	return obj
 }
 
-// QueryJobappl queries the jobappl edge of a File.
-func (c *FileClient) QueryJobappl(f *File) *JobApplicationQuery {
-	query := (&JobApplicationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := f.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(file.Table, file.FieldID, id),
-			sqlgraph.To(jobapplication.Table, jobapplication.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, file.JobapplTable, file.JobapplColumn),
-		)
-		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
 	return c.hooks.File
@@ -686,22 +670,6 @@ func (c *JobApplicationClient) QueryJob(ja *JobApplication) *JobQuery {
 			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, id),
 			sqlgraph.To(job.Table, job.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.JobTable, jobapplication.JobColumn),
-		)
-		fromV = sqlgraph.Neighbors(ja.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryFile queries the file edge of a JobApplication.
-func (c *JobApplicationClient) QueryFile(ja *JobApplication) *FileQuery {
-	query := (&FileClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := ja.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(jobapplication.Table, jobapplication.FieldID, id),
-			sqlgraph.To(file.Table, file.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, jobapplication.FileTable, jobapplication.FileColumn),
 		)
 		fromV = sqlgraph.Neighbors(ja.driver.Dialect(), step)
 		return fromV, nil

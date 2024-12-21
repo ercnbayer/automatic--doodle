@@ -19,14 +19,12 @@ const (
 	FieldUserID = "user_id"
 	// FieldJobID holds the string denoting the job_id field in the database.
 	FieldJobID = "job_id"
-	// FieldFileID holds the string denoting the file_id field in the database.
-	FieldFileID = "file_id"
+	// FieldObjectKey holds the string denoting the object_key field in the database.
+	FieldObjectKey = "object_key"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeJob holds the string denoting the job edge name in mutations.
 	EdgeJob = "job"
-	// EdgeFile holds the string denoting the file edge name in mutations.
-	EdgeFile = "file"
 	// Table holds the table name of the jobapplication in the database.
 	Table = "job_applications"
 	// UserTable is the table that holds the user relation/edge.
@@ -43,13 +41,6 @@ const (
 	JobInverseTable = "jobs"
 	// JobColumn is the table column denoting the job relation/edge.
 	JobColumn = "job_id"
-	// FileTable is the table that holds the file relation/edge.
-	FileTable = "job_applications"
-	// FileInverseTable is the table name for the File entity.
-	// It exists in this package in order to avoid circular dependency with the "file" package.
-	FileInverseTable = "files"
-	// FileColumn is the table column denoting the file relation/edge.
-	FileColumn = "file_id"
 )
 
 // Columns holds all SQL columns for jobapplication fields.
@@ -58,7 +49,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldUserID,
 	FieldJobID,
-	FieldFileID,
+	FieldObjectKey,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -101,9 +92,9 @@ func ByJobID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldJobID, opts...).ToFunc()
 }
 
-// ByFileID orders the results by the file_id field.
-func ByFileID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldFileID, opts...).ToFunc()
+// ByObjectKey orders the results by the object_key field.
+func ByObjectKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldObjectKey, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.
@@ -119,13 +110,6 @@ func ByJobField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newJobStep(), sql.OrderByField(field, opts...))
 	}
 }
-
-// ByFileField orders the results by file field.
-func ByFileField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newFileStep(), sql.OrderByField(field, opts...))
-	}
-}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -138,12 +122,5 @@ func newJobStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(JobInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, JobTable, JobColumn),
-	)
-}
-func newFileStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(FileInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, FileTable, FileColumn),
 	)
 }
