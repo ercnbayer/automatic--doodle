@@ -2,12 +2,9 @@ package repository
 
 import (
 	"automatic-doodle/ent"
-	"automatic-doodle/ent/user"
 	"context"
 	"fmt"
 	"sync"
-
-	"github.com/google/uuid"
 )
 
 var (
@@ -51,38 +48,4 @@ func (repo *UserRepository) Create(
 	}
 
 	return itemRow, nil
-}
-
-func (repo *UserRepository) GetById(id uuid.UUID, ctx context.Context) (*ent.User, error) {
-
-	user, err := repo.db.User.Get(ctx, id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if user == nil {
-		return nil, err
-	}
-
-	return user, nil
-}
-func (repo *UserRepository) GetByIdentifier(
-	identifier string,
-	ctx context.Context,
-) (*ent.User, error) {
-	item, err := repo.db.User.Query().
-		Where(
-			user.Or(
-				user.Email(identifier),
-				// user.Email(identifier),
-				user.PhoneNumber(identifier),
-			),
-		).
-		First(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return item, nil
 }

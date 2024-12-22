@@ -11,10 +11,10 @@ import (
 func (r *Rest) BrowseJobs(c *fiber.Ctx) error {
 
 	var query types.JobQuery
-	err := c.QueryParser(query)
+	err := c.QueryParser(&query)
 
 	if err != nil {
-		return errors.New("Browse Jobs", "WRONG PARAMS")
+		return errors.New("Browse Jobs", err.Error())
 	}
 
 	jobs, err := r.jobRepository.GetByIdentifier(query.Identifier, context.Background())

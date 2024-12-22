@@ -55,6 +55,7 @@ func New(
 			"",
 		)
 		if env.GO_ENV == types.GoEnvProduction {
+			log.Info("PRODUCT ENV")
 			cfg, err = config.LoadDefaultConfig(
 				context.TODO(),
 				config.WithRegion(region),
@@ -63,6 +64,30 @@ func New(
 			)
 			if err != nil {
 				log.Fatal(`AWS config initialize failed with: `, err)
+				return
+			}
+		} else {
+
+			log.Info("LOCALSTACK ENV")
+			// Use LocalStack's default endpoint
+			localStackEndpoint := "http://localhost:4566"
+
+			cfg, err = config.LoadDefaultConfig(
+				context.TODO(),
+				config.WithRegion(region),
+				config.WithCredentialsProvider(creds),
+				config.WithEndpointResolverWithOptions(
+					aws.EndpointResolverWithOptionsFunc(
+						func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+							return aws.Endpoint{
+								URL: localStackEndpoint,
+							}, nil
+						},
+					),
+				),
+			)
+			if err != nil {
+				log.Fatal("LocalStack config initialization failed with: ", err)
 				return
 			}
 		}
@@ -78,6 +103,8 @@ func New(
 			accessKey: accessKey,
 			secretKey: secretKey,
 		}
+		log.Info("region\n", region)
+		log.Info("MODULE HAS BEEN SET")
 	})
 
 	return &module
