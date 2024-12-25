@@ -20,6 +20,18 @@ type CreateJobApplResponse struct {
 	BucketName  string
 }
 
+type GetJobApplResponse struct {
+	User        AuthenticatedUser
+	FileKey     string
+	BucketName  string
+	Description string
+}
+
+type GetJobApplQuery struct {
+	JobID      uuid.UUID `query:"id" validate:"required,uuid"`
+	PageNumber int       `query:"pageNumber" validate:"gte=1"`
+}
+
 func ReturnJobApplResponse(bucketName string, FileKey string, description string, id uuid.UUID, jobID uuid.UUID) CreateJobApplResponse {
 	return CreateJobApplResponse{
 		BucketName:  bucketName,

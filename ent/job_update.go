@@ -120,6 +120,20 @@ func (ju *JobUpdate) SetNillableDescription(s *string) *JobUpdate {
 	return ju
 }
 
+// SetJobOwner sets the "job_owner" field.
+func (ju *JobUpdate) SetJobOwner(u uuid.UUID) *JobUpdate {
+	ju.mutation.SetJobOwner(u)
+	return ju
+}
+
+// SetNillableJobOwner sets the "job_owner" field if the given value is not nil.
+func (ju *JobUpdate) SetNillableJobOwner(u *uuid.UUID) *JobUpdate {
+	if u != nil {
+		ju.SetJobOwner(*u)
+	}
+	return ju
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (ju *JobUpdate) SetUserID(id uuid.UUID) *JobUpdate {
 	ju.mutation.SetUserID(id)
@@ -443,6 +457,20 @@ func (juo *JobUpdateOne) SetDescription(s string) *JobUpdateOne {
 func (juo *JobUpdateOne) SetNillableDescription(s *string) *JobUpdateOne {
 	if s != nil {
 		juo.SetDescription(*s)
+	}
+	return juo
+}
+
+// SetJobOwner sets the "job_owner" field.
+func (juo *JobUpdateOne) SetJobOwner(u uuid.UUID) *JobUpdateOne {
+	juo.mutation.SetJobOwner(u)
+	return juo
+}
+
+// SetNillableJobOwner sets the "job_owner" field if the given value is not nil.
+func (juo *JobUpdateOne) SetNillableJobOwner(u *uuid.UUID) *JobUpdateOne {
+	if u != nil {
+		juo.SetJobOwner(*u)
 	}
 	return juo
 }

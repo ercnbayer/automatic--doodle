@@ -28,7 +28,6 @@ type JobQuery struct {
 	predicates  []predicate.Job
 	withUser    *UserQuery
 	withJobappl *JobApplicationQuery
-	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -408,19 +407,12 @@ func (jq *JobQuery) prepareQuery(ctx context.Context) error {
 func (jq *JobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Job, error) {
 	var (
 		nodes       = []*Job{}
-		withFKs     = jq.withFKs
 		_spec       = jq.querySpec()
 		loadedTypes = [2]bool{
 			jq.withUser != nil,
 			jq.withJobappl != nil,
 		}
 	)
-	if jq.withUser != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, job.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Job).scanValues(nil, columns)
 	}
@@ -459,10 +451,7 @@ func (jq *JobQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Job
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Job)
 	for i := range nodes {
-		if nodes[i].user_jobs == nil {
-			continue
-		}
-		fk := *nodes[i].user_jobs
+		fk := nodes[i].JobOwner
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -479,7 +468,7 @@ func (jq *JobQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Job
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_jobs" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "job_owner" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -542,6 +531,9 @@ func (jq *JobQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != job.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if jq.withUser != nil {
+			_spec.Node.AddColumnOnce(job.FieldJobOwner)
 		}
 	}
 	if ps := jq.predicates; len(ps) > 0 {

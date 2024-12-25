@@ -689,7 +689,9 @@ func (uq *UserQuery) loadJobs(ctx context.Context, query *JobQuery, nodes []*Use
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(job.FieldJobOwner)
+	}
 	query.Where(predicate.Job(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.JobsColumn), fks...))
 	}))
@@ -698,13 +700,10 @@ func (uq *UserQuery) loadJobs(ctx context.Context, query *JobQuery, nodes []*Use
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_jobs
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_jobs" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.JobOwner
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_jobs" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "job_owner" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

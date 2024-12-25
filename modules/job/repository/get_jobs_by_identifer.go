@@ -9,6 +9,8 @@ import (
 func (repo *Repository) GetByIdentifier(
 	identifier string,
 	ctx context.Context,
+	offset int,
+	limit int,
 ) ([]*ent.Job, error) {
 	items, err := repo.db.Job.Query().
 		Where(
@@ -17,7 +19,7 @@ func (repo *Repository) GetByIdentifier(
 
 				job.DescriptionContains(identifier),
 			),
-		).All(ctx)
+		).WithUser().Offset(offset).Limit(limit).All(ctx)
 	if err != nil {
 		return nil, err
 	}

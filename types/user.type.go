@@ -29,6 +29,15 @@ func AuthenticatedUserFromUser(u *ent.User) AuthenticatedUser {
 	}
 }
 
+func UserPublicDetailsFromUser(u *ent.User) UserPublicDetails {
+	return UserPublicDetails{
+		Id:           u.ID,
+		FirstName:    u.FirstName,
+		LastName:     u.LastName,
+		ProfilePhoto: FromFileToFileResponse(u.Edges.ProfileImage),
+	}
+}
+
 type UserPublicDetails struct {
 	Id           uuid.UUID    `json:"id"`
 	FirstName    string       `json:"publisherfirstName"`
@@ -40,7 +49,7 @@ type UserPublicJobAppl struct {
 	UploadedFile CreateUploadUrlRequest `json:"attachment"`
 }
 
-func UserPublicDetailsFromUser(u AuthenticatedUser) UserPublicDetails {
+func UserPublicDetailsFromAUser(u AuthenticatedUser) UserPublicDetails {
 	return UserPublicDetails{
 		Id:           u.Id,
 		FirstName:    u.FirstName,

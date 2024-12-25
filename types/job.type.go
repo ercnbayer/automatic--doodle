@@ -2,6 +2,7 @@ package types
 
 import (
 	"automatic-doodle/ent"
+
 	"time"
 )
 
@@ -29,4 +30,5 @@ type JobAdvResponse struct {
 
 type JobQuery struct {
 	Identifier string `query:"params"`
+	PageNumber int    `query:"pageNumber" validate:"gte=1"`
 }

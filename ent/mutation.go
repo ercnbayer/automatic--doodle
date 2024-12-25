@@ -1136,6 +1136,42 @@ func (m *JobMutation) ResetDescription() {
 	m.description = nil
 }
 
+// SetJobOwner sets the "job_owner" field.
+func (m *JobMutation) SetJobOwner(u uuid.UUID) {
+	m.user = &u
+}
+
+// JobOwner returns the value of the "job_owner" field in the mutation.
+func (m *JobMutation) JobOwner() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJobOwner returns the old "job_owner" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldJobOwner(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJobOwner is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJobOwner requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJobOwner: %w", err)
+	}
+	return oldValue.JobOwner, nil
+}
+
+// ResetJobOwner resets all changes to the "job_owner" field.
+func (m *JobMutation) ResetJobOwner() {
+	m.user = nil
+}
+
 // SetUserID sets the "user" edge to the User entity by id.
 func (m *JobMutation) SetUserID(id uuid.UUID) {
 	m.user = &id
@@ -1144,6 +1180,7 @@ func (m *JobMutation) SetUserID(id uuid.UUID) {
 // ClearUser clears the "user" edge to the User entity.
 func (m *JobMutation) ClearUser() {
 	m.cleareduser = true
+	m.clearedFields[job.FieldJobOwner] = struct{}{}
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
@@ -1263,7 +1300,7 @@ func (m *JobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *JobMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.created_at != nil {
 		fields = append(fields, job.FieldCreatedAt)
 	}
@@ -1281,6 +1318,9 @@ func (m *JobMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, job.FieldDescription)
+	}
+	if m.user != nil {
+		fields = append(fields, job.FieldJobOwner)
 	}
 	return fields
 }
@@ -1302,6 +1342,8 @@ func (m *JobMutation) Field(name string) (ent.Value, bool) {
 		return m.JobType()
 	case job.FieldDescription:
 		return m.Description()
+	case job.FieldJobOwner:
+		return m.JobOwner()
 	}
 	return nil, false
 }
@@ -1323,6 +1365,8 @@ func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldJobType(ctx)
 	case job.FieldDescription:
 		return m.OldDescription(ctx)
+	case job.FieldJobOwner:
+		return m.OldJobOwner(ctx)
 	}
 	return nil, fmt.Errorf("unknown Job field %s", name)
 }
@@ -1373,6 +1417,13 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case job.FieldJobOwner:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJobOwner(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Job field %s", name)
@@ -1470,6 +1521,9 @@ func (m *JobMutation) ResetField(name string) error {
 		return nil
 	case job.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case job.FieldJobOwner:
+		m.ResetJobOwner()
 		return nil
 	}
 	return fmt.Errorf("unknown Job field %s", name)

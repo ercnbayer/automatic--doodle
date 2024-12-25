@@ -19,10 +19,11 @@ import (
 	factory4 "automatic-doodle/modules/job/factory"
 	repository4 "automatic-doodle/modules/job/repository"
 	rest5 "automatic-doodle/modules/job/rest"
+	service5 "automatic-doodle/modules/job/service"
 	factory5 "automatic-doodle/modules/jobAppl/factory"
 	repository5 "automatic-doodle/modules/jobAppl/repository"
 	rest6 "automatic-doodle/modules/jobAppl/rest"
-	service5 "automatic-doodle/modules/jobAppl/service"
+	service6 "automatic-doodle/modules/jobAppl/service"
 	rest3 "automatic-doodle/modules/profile/rest"
 	"automatic-doodle/modules/refresh-token/factory"
 	"automatic-doodle/modules/refresh-token/repository"
@@ -68,11 +69,11 @@ func Wire(db *ent.Client) *server.Server {
 	factoryFactory := factory.New(db, encryptionModule)
 	userFactory := factory2.New(db, encryptionModule)
 	userRepository := repository2.New(db)
-	service6 := service2.New(serviceLogger, encryptionModule, serviceService, repositoryRepository, factoryFactory, userFactory, userRepository)
-	middlewareMiddleware := middleware.New(middlewareLogger, service6)
+	service7 := service2.New(serviceLogger, encryptionModule, serviceService, repositoryRepository, factoryFactory, userFactory, userRepository)
+	middlewareMiddleware := middleware.New(middlewareLogger, service7)
 	restRest := rest.New(middlewareMiddleware)
 	restLogger := _wireLoggerValue7
-	rest7 := rest2.New(restLogger, service6, middlewareMiddleware)
+	rest7 := rest2.New(restLogger, service7, middlewareMiddleware)
 	factory6 := factory3.New(db)
 	repository6 := repository3.New(db)
 	userService := service3.New(userRepository, userFactory, factory6, repository6)
@@ -82,17 +83,18 @@ func Wire(db *ent.Client) *server.Server {
 	logger5 := _wireLoggerValue10
 	s3clientLogger := _wireLoggerValue11
 	s3clientService := s3client.New(s3clientLogger, configModule)
-	service7 := service4.New(logger5, repository6, factory6, s3clientService)
-	rest9 := rest4.New(logger4, service7, middlewareMiddleware)
+	service8 := service4.New(logger5, repository6, factory6, s3clientService)
+	rest9 := rest4.New(logger4, service8, middlewareMiddleware)
 	factory7 := factory4.New(db)
 	repository7 := repository4.New(db)
+	service9 := service5.New(repository7, userRepository)
 	logger6 := _wireLoggerValue12
-	rest10 := rest5.New(middlewareMiddleware, factory7, repository7, logger6)
+	rest10 := rest5.New(middlewareMiddleware, factory7, repository7, service9, logger6)
 	factory8 := factory5.New(db)
 	repository8 := repository5.New()
-	service8 := service5.New(factory8, repository8, repository7)
+	service10 := service6.New(factory8, repository8, repository7, userRepository)
 	logger7 := _wireLoggerValue13
-	rest11 := rest6.New(service8, logger7, middlewareMiddleware)
+	rest11 := rest6.New(service10, logger7, middlewareMiddleware)
 	routerRouter := router.New(restRest, rest7, rest8, rest9, rest10, rest11)
 	serverServer := server.New(configModule, serverLogger, routerRouter)
 	return serverServer

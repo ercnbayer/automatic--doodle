@@ -20,15 +20,15 @@ func (r *Rest) Register(c *fiber.Ctx) error {
 				"error": err,
 			},
 		)
-		return err
+		return c.Status(400).JSON(err)
 
 	}
 
 	tokens, RegisterErr := r.authenticationService.Register(&payload)
 
 	if RegisterErr != nil {
-		r.log.Warning("service err")
-		return RegisterErr
+		r.log.Info("service err")
+		return c.Status(400).JSON("Bad Req")
 	}
 
 	return c.Status(200).JSON(tokens)

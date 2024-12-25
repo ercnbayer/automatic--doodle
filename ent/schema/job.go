@@ -35,6 +35,7 @@ func (Job) Fields() []ent.Field {
 		field.String("description").
 			MaxLen(1024).
 			NotEmpty(),
+		field.UUID("job_owner", uuid.UUID{}),
 	}
 }
 
@@ -43,6 +44,7 @@ func (Job) Edges() []ent.Edge {
 		edge.From("user", User.Type).
 			Ref("jobs").
 			Unique().
+			Field("job_owner").
 			Required(),
 		edge.To("jobappl", JobApplication.Type),
 	}

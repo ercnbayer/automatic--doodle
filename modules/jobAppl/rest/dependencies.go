@@ -2,12 +2,15 @@ package rest
 
 import (
 	"automatic-doodle/types"
+	"context"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type JobApplService interface {
 	CreateJobAppl(request types.CreateJobApplRequest) (types.CreateJobApplResponse, error)
+	CheckJobOwner(int, int, uuid.UUID, uuid.UUID, context.Context) ([]types.GetJobApplResponse, error)
 }
 
 type Logger interface {

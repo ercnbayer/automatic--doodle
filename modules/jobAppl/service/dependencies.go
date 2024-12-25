@@ -9,7 +9,7 @@ import (
 
 type JobApplRepository interface {
 	Create(item *ent.JobApplicationCreate, ctx context.Context) (*ent.JobApplication, error)
-	GetJobApplsWithJobId(jobID uuid.UUID, ctx context.Context) ([]*ent.JobApplication, error)
+	GetJobApplsWithJobId(offset int, limit int, jobID uuid.UUID, ctx context.Context) ([]*ent.JobApplication, error)
 }
 
 type JobApplFactory interface {
@@ -18,4 +18,8 @@ type JobApplFactory interface {
 
 type JobRepository interface {
 	GetJobById(uuid.UUID, context.Context) (*ent.Job, error)
+}
+
+type UserRepository interface {
+	GetById(id uuid.UUID, ctx context.Context) (*ent.User, error)
 }

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"automatic-doodle/ent"
+	"automatic-doodle/types"
 	"context"
 	"time"
 
@@ -27,8 +28,8 @@ type JobFactory interface {
 
 type JobRepository interface {
 	Create(*ent.JobCreate, context.Context) (*ent.Job, error)
-	GetByIdentifier(
-		identifier string,
-		ctx context.Context,
-	) ([]*ent.Job, error)
+}
+
+type JobService interface {
+	BrowseJob(offset int, limit int, identifier string, ctx context.Context) ([]types.JobAdvResponse, error)
 }

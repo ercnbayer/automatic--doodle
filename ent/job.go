@@ -31,10 +31,11 @@ type Job struct {
 	JobType string `json:"job_type,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// JobOwner holds the value of the "job_owner" field.
+	JobOwner uuid.UUID `json:"job_owner,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the JobQuery when eager-loading is set.
 	Edges        JobEdges `json:"edges"`
-	user_jobs    *uuid.UUID
 	selectValues sql.SelectValues
 }
 
@@ -80,10 +81,8 @@ func (*Job) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case job.FieldCreatedAt, job.FieldStartDate, job.FieldEndDate:
 			values[i] = new(sql.NullTime)
-		case job.FieldID:
+		case job.FieldID, job.FieldJobOwner:
 			values[i] = new(uuid.UUID)
-		case job.ForeignKeys[0]: // user_jobs
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -141,12 +140,11 @@ func (j *Job) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				j.Description = value.String
 			}
-		case job.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_jobs", values[i])
-			} else if value.Valid {
-				j.user_jobs = new(uuid.UUID)
-				*j.user_jobs = *value.S.(*uuid.UUID)
+		case job.FieldJobOwner:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field job_owner", values[i])
+			} else if value != nil {
+				j.JobOwner = *value
 			}
 		default:
 			j.selectValues.Set(columns[i], values[i])
@@ -211,6 +209,9 @@ func (j *Job) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(j.Description)
+	builder.WriteString(", ")
+	builder.WriteString("job_owner=")
+	builder.WriteString(fmt.Sprintf("%v", j.JobOwner))
 	builder.WriteByte(')')
 	return builder.String()
 }

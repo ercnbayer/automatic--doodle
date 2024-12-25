@@ -83,6 +83,12 @@ func (jc *JobCreate) SetDescription(s string) *JobCreate {
 	return jc
 }
 
+// SetJobOwner sets the "job_owner" field.
+func (jc *JobCreate) SetJobOwner(u uuid.UUID) *JobCreate {
+	jc.mutation.SetJobOwner(u)
+	return jc
+}
+
 // SetID sets the "id" field.
 func (jc *JobCreate) SetID(u uuid.UUID) *JobCreate {
 	jc.mutation.SetID(u)
@@ -197,6 +203,9 @@ func (jc *JobCreate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Job.description": %w`, err)}
 		}
 	}
+	if _, ok := jc.mutation.JobOwner(); !ok {
+		return &ValidationError{Name: "job_owner", err: errors.New(`ent: missing required field "Job.job_owner"`)}
+	}
 	if len(jc.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Job.user"`)}
 	}
@@ -273,7 +282,7 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_jobs = &nodes[0]
+		_node.JobOwner = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := jc.mutation.JobapplIDs(); len(nodes) > 0 {

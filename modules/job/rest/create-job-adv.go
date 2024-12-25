@@ -39,9 +39,9 @@ func (r *Rest) CreateJobAdv(c *fiber.Ctx) error {
 	jobItem, err := r.jobRepository.Create(pJob, context.Background())
 
 	if err != nil {
-		return err
+		return c.Status(400).JSON(err)
 	}
 
-	return c.Status(200).JSON(types.JobAdvReponseFromJob(jobItem, types.UserPublicDetailsFromUser(userItem)))
+	return c.Status(200).JSON(types.JobAdvReponseFromJob(jobItem, types.UserPublicDetailsFromAUser(userItem)))
 
 }

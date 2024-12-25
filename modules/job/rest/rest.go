@@ -7,6 +7,7 @@ type Rest struct {
 	logger                   Logger
 	jobFactory               JobFactory
 	jobRepository            JobRepository
+	jobService               JobService
 }
 
 var (
@@ -18,6 +19,7 @@ func New(
 	authenticationMiddleware AuthenticationMiddleware,
 	jobFactory JobFactory,
 	jobRepository JobRepository,
+	jobService JobService,
 	logger Logger,
 ) *Rest {
 	moduleOnce.Do(func() {
@@ -26,6 +28,7 @@ func New(
 			logger:                   logger,
 			jobFactory:               jobFactory,
 			jobRepository:            jobRepository,
+			jobService:               jobService,
 		}
 	})
 

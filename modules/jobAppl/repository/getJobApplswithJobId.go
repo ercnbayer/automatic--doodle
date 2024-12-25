@@ -8,11 +8,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *Repository) GetJobApplsWithJobId(jobID uuid.UUID, ctx context.Context) ([]*ent.JobApplication, error) {
+func (r *Repository) GetJobApplsWithJobId(offset int, limit int, jobID uuid.UUID, ctx context.Context) ([]*ent.JobApplication, error) {
 	items, err := r.db.JobApplication.Query().Where(
 		jobapplication.Or(
 			jobapplication.JobID(jobID),
-		)).All(ctx)
+		)).WithJob().Offset(offset).Limit(limit).All(ctx)
 
 	if err != nil {
 		return nil, err

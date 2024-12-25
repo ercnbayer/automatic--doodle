@@ -14,7 +14,7 @@ func (r *Rest) loginUser(c *fiber.Ctx) error {
 
 	if err != nil {
 		errors.New("User", "Invalid params")
-		return err
+		return c.Status(400).JSON(err)
 	}
 
 	response, err := r.authenticationService.

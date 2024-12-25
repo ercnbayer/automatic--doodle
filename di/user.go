@@ -2,6 +2,8 @@ package di
 
 import (
 	authService "automatic-doodle/modules/auth/service"
+	JobService "automatic-doodle/modules/job/service"
+	JobApplService "automatic-doodle/modules/jobAppl/service"
 	ProfileRest "automatic-doodle/modules/profile/rest"
 	"automatic-doodle/modules/router"
 	UserFactory "automatic-doodle/modules/user/factory"
@@ -21,7 +23,9 @@ var (
 	)
 	UserRepositoryProviderSet wire.ProviderSet = wire.NewSet(UserRepo.New,
 		wire.Bind(new(UserService.UserRepository), new(*UserRepo.UserRepository)),
-		wire.Bind(new(authService.UserRepository), new(*UserRepo.UserRepository)))
+		wire.Bind(new(authService.UserRepository), new(*UserRepo.UserRepository)),
+		wire.Bind(new(JobService.UserRepository), new(*UserRepo.UserRepository)),
+		wire.Bind(new(JobApplService.UserRepository), new(*UserRepo.UserRepository)))
 
 	UserRestProviderSet wire.ProviderSet = wire.NewSet(UserRest.New,
 

@@ -75,7 +75,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "job" package.
 	JobsInverseTable = "jobs"
 	// JobsColumn is the table column denoting the jobs relation/edge.
-	JobsColumn = "user_jobs"
+	JobsColumn = "job_owner"
 	// JobapplTable is the table that holds the jobappl relation/edge.
 	JobapplTable = "job_applications"
 	// JobapplInverseTable is the table name for the JobApplication entity.

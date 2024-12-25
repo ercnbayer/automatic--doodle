@@ -40,6 +40,7 @@ func Wire(
 		FileRestProviderSet,
 		JobRepositoryProviderSet,
 		JobFactoryProviderSet,
+		JobServiceProviderSet,
 		JobRestProviderSet,
 		JobApplFactoryProviderSet,
 		JobApplRepositoryProviderSet,

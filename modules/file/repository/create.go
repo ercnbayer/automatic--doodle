@@ -2,8 +2,9 @@ package repository
 
 import (
 	"automatic-doodle/ent"
+	"errors"
+
 	"context"
-	"fmt"
 )
 
 func (r *Repository) Create(
@@ -11,12 +12,12 @@ func (r *Repository) Create(
 	ctx context.Context,
 ) (*ent.File, error) {
 	if item == nil {
-		return nil, fmt.Errorf("user cannot be nil")
+		return nil, errors.New("Null item")
 	}
 
 	itemRow, err := item.Save(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create user: %w", err)
+		return nil, err
 	}
 
 	return itemRow, nil

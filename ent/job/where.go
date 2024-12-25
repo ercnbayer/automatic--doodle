@@ -86,6 +86,11 @@ func Description(v string) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldDescription, v))
 }
 
+// JobOwner applies equality check predicate on the "job_owner" field. It's identical to JobOwnerEQ.
+func JobOwner(v uuid.UUID) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldJobOwner, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldCreatedAt, v))
@@ -394,6 +399,26 @@ func DescriptionEqualFold(v string) predicate.Job {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Job {
 	return predicate.Job(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// JobOwnerEQ applies the EQ predicate on the "job_owner" field.
+func JobOwnerEQ(v uuid.UUID) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldJobOwner, v))
+}
+
+// JobOwnerNEQ applies the NEQ predicate on the "job_owner" field.
+func JobOwnerNEQ(v uuid.UUID) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldJobOwner, v))
+}
+
+// JobOwnerIn applies the In predicate on the "job_owner" field.
+func JobOwnerIn(vs ...uuid.UUID) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldJobOwner, vs...))
+}
+
+// JobOwnerNotIn applies the NotIn predicate on the "job_owner" field.
+func JobOwnerNotIn(vs ...uuid.UUID) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldJobOwner, vs...))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

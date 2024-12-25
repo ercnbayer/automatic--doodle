@@ -35,7 +35,7 @@ var (
 		{Name: "fee", Type: field.TypeInt},
 		{Name: "job_type", Type: field.TypeString, Size: 255},
 		{Name: "description", Type: field.TypeString, Size: 1024},
-		{Name: "user_jobs", Type: field.TypeUUID},
+		{Name: "job_owner", Type: field.TypeUUID},
 	}
 	// JobsTable holds the schema information for the "jobs" table.
 	JobsTable = &schema.Table{
