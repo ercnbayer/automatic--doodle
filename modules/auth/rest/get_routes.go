@@ -23,6 +23,15 @@ func (r *Rest) GetRoutes() []types.HandlerItem {
 				r.Register,
 			},
 		},
+		{
+			Path:   "/auth/me",
+			Method: "GET",
+			Handler: []func(*fiber.Ctx) error{
+
+				r.authenticationMiddleware.Auth,
+				r.Me,
+			},
+		},
 	}
 
 }

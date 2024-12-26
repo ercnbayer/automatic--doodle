@@ -31,7 +31,7 @@ func (r *Rest) CreateJobAdv(c *fiber.Ctx) error {
 
 	if !ok {
 		r.logger.Info("Local user is not user entity")
-		return errors.NewUnauthorizedError("MiddlewaresModule")
+		return c.Status(400).JSON(errors.NewUnauthorizedError("MiddlewaresModule"))
 	}
 
 	pJob := r.jobFactory.Create(payload.Fee, payload.Description, payload.JobType, payload.StartDate, payload.EndDate, userItem.Id)
