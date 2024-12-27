@@ -4,6 +4,7 @@ import (
 	"automatic-doodle/types"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type Logger interface {
@@ -17,6 +18,7 @@ type Logger interface {
 type AuthenticationService interface {
 	Login(*types.LoginRequest) (types.TokenResponse, error)
 	Register(*types.RegisterRequest) (types.TokenResponse, error)
+	UpdatePassword(req types.UpdateUserPassword, id uuid.UUID) (types.AuthenticatedUser, error)
 }
 
 type AuthenticationMiddleware interface {

@@ -32,6 +32,16 @@ func (r *Rest) GetRoutes() []types.HandlerItem {
 				r.Me,
 			},
 		},
+
+		{
+			Path:   "/auth/me",
+			Method: "PATCH",
+			Handler: []func(*fiber.Ctx) error{
+
+				r.authenticationMiddleware.Auth,
+				r.UpdatePassword,
+			},
+		},
 	}
 
 }

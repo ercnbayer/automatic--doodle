@@ -71,7 +71,7 @@ func Wire(db *ent.Client) *server.Server {
 	userRepository := repository2.New(db)
 	service7 := service2.New(serviceLogger, encryptionModule, serviceService, repositoryRepository, factoryFactory, userFactory, userRepository)
 	middlewareMiddleware := middleware.New(middlewareLogger, service7)
-	restRest := rest.New(middlewareMiddleware)
+	restRest := rest.New(middlewareMiddleware, userRepository)
 	restLogger := _wireLoggerValue7
 	rest7 := rest2.New(restLogger, service7, middlewareMiddleware)
 	factory6 := factory3.New(db)

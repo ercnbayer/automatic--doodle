@@ -21,11 +21,13 @@ var (
 		wire.Bind(new(authService.UserFactory), new(*UserFactory.UserFactory)),
 		wire.Bind(new(UserService.UserFactory), new(*UserFactory.UserFactory)),
 	)
+
 	UserRepositoryProviderSet wire.ProviderSet = wire.NewSet(UserRepo.New,
 		wire.Bind(new(UserService.UserRepository), new(*UserRepo.UserRepository)),
 		wire.Bind(new(authService.UserRepository), new(*UserRepo.UserRepository)),
 		wire.Bind(new(JobService.UserRepository), new(*UserRepo.UserRepository)),
-		wire.Bind(new(JobApplService.UserRepository), new(*UserRepo.UserRepository)))
+		wire.Bind(new(JobApplService.UserRepository), new(*UserRepo.UserRepository)),
+		wire.Bind(new(UserRest.UserRepository), new(*UserRepo.UserRepository)))
 
 	UserRestProviderSet wire.ProviderSet = wire.NewSet(UserRest.New,
 

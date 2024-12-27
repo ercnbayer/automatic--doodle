@@ -5,7 +5,8 @@ import (
 )
 
 type Rest struct {
-	AuthenticationMiddleware AuthenticationMiddleware
+	authenticationMiddleware AuthenticationMiddleware
+	userRepository           UserRepository
 }
 
 var (
@@ -15,10 +16,12 @@ var (
 
 func New(
 	authenticationMiddleware AuthenticationMiddleware,
+	userRepository UserRepository,
 ) *Rest {
 	moduleOnce.Do(func() {
 		module = Rest{
-			AuthenticationMiddleware: authenticationMiddleware,
+			authenticationMiddleware: authenticationMiddleware,
+			userRepository:           userRepository,
 		}
 	})
 

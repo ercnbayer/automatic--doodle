@@ -17,6 +17,21 @@ type AuthenticatedUser struct {
 	ProfilePhoto FileResponse `json:"profile_photo"`
 }
 
+type ViewUserReq struct {
+	Id uuid.UUID `query:"id" validate:"required,uuid"`
+}
+type UpdateUserReq struct {
+	FirstName   string `json:"firstName" validate:"required,min=3,max=255"`
+	LastName    string `json:"lastName" validate:"required,min=3,max=255"`
+	Email       string `json:"email" validate:"required,email"`
+	PhoneNumber string `json:"phoneNumber" validate:"required,e164"`
+}
+
+type UpdateUserPassword struct {
+	CurrentPassword string `json:"current_password" validate:"required,password"`
+	NewPassword     string `json:"password" validate:"required,password"`
+}
+
 func AuthenticatedUserFromUser(u *ent.User) AuthenticatedUser {
 	return AuthenticatedUser{
 		Id:           u.ID,
