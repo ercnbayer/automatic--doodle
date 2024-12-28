@@ -12,7 +12,6 @@ import (
 
 type UserFactory interface {
 	Create(string, string, string, string, string, user.Role, user.State) *ent.UserCreate
-	UpdatePassword(id uuid.UUID, password string, ctx context.Context) (*ent.User, error)
 }
 
 type UserRepository interface {
