@@ -10,8 +10,8 @@ import (
 	UserRepo "automatic-doodle/modules/user/repository"
 	UserRest "automatic-doodle/modules/user/rest"
 	UserService "automatic-doodle/modules/user/service"
-	"automatic-doodle/pkg/logger"
 
+	logger "github.com/Wodemy-Labs/crawl"
 	"github.com/google/wire"
 )
 
@@ -36,6 +36,6 @@ var (
 	UserServiceProviderSet wire.ProviderSet = wire.NewSet(UserService.New,
 
 		wire.Bind(new(ProfileRest.UserService), new(*UserService.UserService)),
-		wire.InterfaceValue(new(UserService.Logger), logger.New("UserService")),
+		wire.InterfaceValue(new(UserService.Logger), logger.New("UserService", nil)),
 	)
 )

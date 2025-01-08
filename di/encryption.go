@@ -5,7 +5,8 @@ import (
 	refreshTokenFactory "automatic-doodle/modules/refresh-token/factory"
 	userFactory "automatic-doodle/modules/user/factory"
 	"automatic-doodle/pkg/encryption"
-	"automatic-doodle/pkg/logger"
+
+	logger "github.com/Wodemy-Labs/crawl"
 
 	"github.com/google/wire"
 )
@@ -24,6 +25,6 @@ var EncryptionProviderSet wire.ProviderSet = wire.NewSet(
 	wire.Bind(new(refreshTokenFactory.Encryption), new(*encryption.EncryptionModule)),
 	wire.InterfaceValue(
 		new(encryption.Logger),
-		logger.New("EncryptionModule"),
+		logger.New("EncryptionModule", nil),
 	),
 )

@@ -8,7 +8,7 @@ import (
 	router "automatic-doodle/modules/router"
 	userService "automatic-doodle/modules/user/service"
 
-	"automatic-doodle/pkg/logger"
+	logger "github.com/Wodemy-Labs/crawl"
 
 	"github.com/google/wire"
 )
@@ -34,7 +34,7 @@ var (
 
 		wire.InterfaceValue(
 			new(fileRest.Logger),
-			logger.New("FileRest"),
+			logger.New("FileRest", nil),
 		),
 	)
 	FileServiceProviderSet wire.ProviderSet = wire.NewSet(
@@ -47,7 +47,7 @@ var (
 
 		wire.InterfaceValue(
 			new(fileService.Logger),
-			logger.New("FileService"),
+			logger.New("FileService", nil),
 		),
 	)
 )

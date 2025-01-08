@@ -1,12 +1,11 @@
 package di
 
 import (
-	"automatic-doodle/pkg/logger"
-
 	s3client "automatic-doodle/pkg/s3_client"
 
 	fileService "automatic-doodle/modules/file/service"
 
+	logger "github.com/Wodemy-Labs/crawl"
 	"github.com/google/wire"
 )
 
@@ -20,6 +19,6 @@ var S3ClientProviderSet wire.ProviderSet = wire.NewSet(
 
 	wire.InterfaceValue(
 		new(s3client.Logger),
-		logger.New("S3Client"),
+		logger.New("S3Client", nil),
 	),
 )

@@ -1,8 +1,9 @@
 package di
 
 import (
-	"automatic-doodle/pkg/logger"
 	"automatic-doodle/pkg/postgres"
+
+	logger "github.com/Wodemy-Labs/crawl"
 
 	"github.com/google/wire"
 )
@@ -12,6 +13,6 @@ var PostgresProviderSet wire.ProviderSet = wire.NewSet(
 
 	wire.InterfaceValue(
 		new(postgres.Logger),
-		logger.New("PostgresModule"),
+		logger.New("PostgresModule", nil),
 	),
 )

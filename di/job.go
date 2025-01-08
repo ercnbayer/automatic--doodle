@@ -7,7 +7,8 @@ import (
 	"automatic-doodle/modules/job/service"
 	JobApplService "automatic-doodle/modules/jobAppl/service"
 	"automatic-doodle/modules/router"
-	"automatic-doodle/pkg/logger"
+
+	logger "github.com/Wodemy-Labs/crawl"
 
 	"github.com/google/wire"
 )
@@ -22,4 +23,4 @@ var JobRepositoryProviderSet wire.ProviderSet = wire.NewSet(JobRepository.New,
 
 var JobServiceProviderSet wire.ProviderSet = wire.NewSet(service.New, wire.Bind(new(rest.JobService), new(*service.Service)))
 var JobRestProviderSet wire.ProviderSet = wire.NewSet(rest.New, (wire.Bind(new(router.JobHandler), new(*rest.Rest))),
-	wire.InterfaceValue(new(rest.Logger), logger.New("JOB API LOGGER")))
+	wire.InterfaceValue(new(rest.Logger), logger.New("JOB API LOGGER", nil)))

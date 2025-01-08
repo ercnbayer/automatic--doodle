@@ -4,10 +4,11 @@ import (
 	accessTokenService "automatic-doodle/modules/access-token/service"
 	"automatic-doodle/pkg/config"
 	"automatic-doodle/pkg/encryption"
-	"automatic-doodle/pkg/logger"
 	"automatic-doodle/pkg/postgres"
 	s3client "automatic-doodle/pkg/s3_client"
 	"automatic-doodle/pkg/server"
+
+	logger "github.com/Wodemy-Labs/crawl"
 
 	"github.com/google/wire"
 )
@@ -35,6 +36,6 @@ var ConfigProviderSet wire.ProviderSet = wire.NewSet(
 
 	wire.InterfaceValue(
 		new(config.Logger),
-		logger.New("ConfigModule"),
+		logger.New("ConfigModule", nil),
 	),
 )

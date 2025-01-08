@@ -9,7 +9,8 @@ import (
 	ProfileRest "automatic-doodle/modules/profile/rest"
 	"automatic-doodle/modules/router"
 	userRest "automatic-doodle/modules/user/rest"
-	"automatic-doodle/pkg/logger"
+
+	logger "github.com/Wodemy-Labs/crawl"
 
 	jobApplRest "automatic-doodle/modules/jobAppl/rest"
 
@@ -27,7 +28,7 @@ var (
 
 		wire.InterfaceValue(
 			new(authService.Logger),
-			logger.New("AuthenticationService"),
+			logger.New("AuthenticationService", nil),
 		))
 
 	AuthenticationMiddlewareProviderSet wire.ProviderSet = wire.NewSet(
@@ -43,10 +44,10 @@ var (
 		wire.Bind(new(jobRest.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
 		wire.Bind(new(jobApplRest.AuthMiddleware), new(*authenticationMiddleware.Middleware)),
 
-		wire.InterfaceValue(new(authenticationMiddleware.Logger), logger.New("Authentication Middleware Logger")),
+		wire.InterfaceValue(new(authenticationMiddleware.Logger), logger.New("Authentication Middleware Logger", nil)),
 	)
 	AuthenticationRestProviderSet wire.ProviderSet = wire.NewSet(authRest.New,
 		wire.Bind(new(router.AuthHandler), new(*authRest.Rest)),
 
-		wire.InterfaceValue(new(authRest.Logger), logger.New("AuthRestLogger")))
+		wire.InterfaceValue(new(authRest.Logger), logger.New("AuthRestLogger", nil)))
 )

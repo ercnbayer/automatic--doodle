@@ -5,6 +5,7 @@ go 1.23.0
 require github.com/google/uuid v1.6.0
 
 require (
+	github.com/Wodemy-Labs/crawl v1.0.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.32.6 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.7 // indirect

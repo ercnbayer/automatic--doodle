@@ -34,30 +34,30 @@ import (
 	service3 "automatic-doodle/modules/user/service"
 	"automatic-doodle/pkg/config"
 	"automatic-doodle/pkg/encryption"
-	"automatic-doodle/pkg/logger"
 	"automatic-doodle/pkg/postgres"
 	"automatic-doodle/pkg/s3_client"
 	"automatic-doodle/pkg/server"
+	"github.com/Wodemy-Labs/crawl"
 )
 
 // Injectors from wire.go:
 
 func DBBuilder() *ent.Client {
 	logger := _wireLoggerValue
-	configLogger := _wireLoggerLoggerValue
+	configLogger := _wireCrawlLoggerValue
 	configModule := config.New(configLogger)
 	client := postgres.New(logger, configModule)
 	return client
 }
 
 var (
-	_wireLoggerValue       = logger.New("PostgresModule")
-	_wireLoggerLoggerValue = logger.New("ConfigModule")
+	_wireLoggerValue      = crawl.New("PostgresModule", nil)
+	_wireCrawlLoggerValue = crawl.New("ConfigModule", nil)
 )
 
 func Wire(db *ent.Client) *server.Server {
-	configLogger := _wireLoggerLoggerValue
-	configModule := config.New(configLogger)
+	logger := _wireCrawlLoggerValue
+	configModule := config.New(logger)
 	serverLogger := _wireLoggerValue2
 	middlewareLogger := _wireLoggerValue3
 	serviceLogger := _wireLoggerValue4
@@ -101,16 +101,16 @@ func Wire(db *ent.Client) *server.Server {
 }
 
 var (
-	_wireLoggerValue2  = logger.New("ServerModule")
-	_wireLoggerValue3  = logger.New("Authentication Middleware Logger")
-	_wireLoggerValue4  = logger.New("AuthenticationService")
-	_wireLoggerValue5  = logger.New("EncryptionModule")
-	_wireLoggerValue6  = logger.New("AccessTokenService")
-	_wireLoggerValue7  = logger.New("AuthRestLogger")
-	_wireLoggerValue8  = logger.New("logger")
-	_wireLoggerValue9  = logger.New("FileRest")
-	_wireLoggerValue10 = logger.New("FileService")
-	_wireLoggerValue11 = logger.New("S3Client")
-	_wireLoggerValue12 = logger.New("JOB API LOGGER")
-	_wireLoggerValue13 = logger.New("JobApplRest Module")
+	_wireLoggerValue2  = crawl.New("ServerModule", nil)
+	_wireLoggerValue3  = crawl.New("Authentication Middleware Logger", nil)
+	_wireLoggerValue4  = crawl.New("AuthenticationService", nil)
+	_wireLoggerValue5  = crawl.New("EncryptionModule", nil)
+	_wireLoggerValue6  = crawl.New("AccessTokenService", nil)
+	_wireLoggerValue7  = crawl.New("AuthRestLogger", nil)
+	_wireLoggerValue8  = crawl.New("logger", nil)
+	_wireLoggerValue9  = crawl.New("FileRest", nil)
+	_wireLoggerValue10 = crawl.New("FileService", nil)
+	_wireLoggerValue11 = crawl.New("S3Client", nil)
+	_wireLoggerValue12 = crawl.New("JOB API LOGGER", nil)
+	_wireLoggerValue13 = crawl.New("JobApplRest Module", nil)
 )
