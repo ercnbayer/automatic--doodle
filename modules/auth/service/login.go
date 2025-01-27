@@ -12,6 +12,7 @@ func (srv *Service) Login(req *types.LoginRequest) (types.TokenResponse, error) 
 	if err != nil {
 		return types.TokenResponse{}, err
 	}
+
 	if ok := srv.encryptionService.CheckPasswordHash(
 		req.Password,
 		user.PasswordSalt,
