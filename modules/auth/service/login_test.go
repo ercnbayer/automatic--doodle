@@ -1,249 +1,150 @@
-package service_test
+package service
 
 import (
-	"errors"
+	"automatic-doodle/ent"
+	"automatic-doodle/ent/user"
+	"automatic-doodle/types"
+	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
 )
 
-//  represents a mock implementation for testing.
-
-// Mock methods for .
-func GetByIdentifier() (User, error) {
-	return User{
-		UserID:   uuid.NewString(),
-		UserRole: "USER",
-	}, nil
+type RefreshTokenRepositoryMock struct {
 }
 
-func GetByIdentifierF() (User, error) {
-	return User{
-		UserID:   uuid.NewString(),
-		UserRole: "USER",
-	}, errors.New("some err")
+func (*RefreshTokenRepositoryMock) Create(
+	*ent.RefreshTokenCreate,
+	context.Context,
+) (*ent.RefreshToken, error) {
+	return &ent.RefreshToken{}, nil
 }
 
-func CheckPasswordHash(password, hashedPassword string) bool {
-	// Simulate password hash checking.
-	return hashedPassword == "return True"
+func (*RefreshTokenRepositoryMock) GetByTokenWithUser(string, context.Context) (*ent.RefreshToken, error) {
+	return &ent.RefreshToken{}, nil
 }
 
-func CheckPasswordHashF(password, hashedPassword string) bool {
-	return false
+type AuthTestStruct struct {
+	Srv *Service
 }
 
-func CreateTokens(userID, userRole string) (string, error) {
-	// Simulate token creation.
-	return "mockToken", nil
+type EncryptionMock struct {
 }
 
-func CreateTokenFalse(userID, userRole string) (string, error) {
-	// Simulate token creation.
-	return "mockToken", errors.New("simulate error")
+func (*EncryptionMock) EncryptTokens(
+	tokens types.EncryptedTokenPayload,
+) (string, error) {
+	return "TestToken", nil
 }
 
-// User structure to simulate a user.
-type User struct {
-	UserID   string
-	UserRole string
+func (*EncryptionMock) DecryptTokens(string) (types.EncryptedTokenPayload, error) {
+	return types.EncryptedTokenPayload{}, nil
+}
+func (*EncryptionMock) CheckPasswordHash(string, string, string) bool {
+	return true
 }
 
-// TokenResponse structure for the test.
-type TokenResponse struct {
-	Token string
-	User  AuthenticatedUser
+type AccessTokenMock struct {
 }
 
-// AuthenticatedUser represents authenticated user information.
-type AuthenticatedUser struct {
-	Id           string
-	FirstName    string
-	LastName     string
-	Email        string
-	ProfilePhoto FileResponse
-	Role         string
-	State        string
+func (*AccessTokenMock) Create(*types.JWTTokenPayload) (string, error) {
+
+	return "tokencreated", nil
 }
 
-// FileResponse represents a file's details.
-type FileResponse struct {
-	Key    string
-	Bucket string
+func (*AccessTokenMock) Validate(user.Role, *string) (string, error) {
+	return "validated", nil
 }
 
-func TestLogin(t *testing.T) {
+type UserFacMock struct {
+}
 
-	// Simulate getting a user by identifier.
-	user, err := GetByIdentifier()
+func (*UserFacMock) Create(
+	phoneNumber,
+	email,
+	firstName,
+	lastName,
+
+	password string,
+	role user.Role,
+	state user.State,
+) *ent.UserCreate {
+	return &ent.UserCreate{}
+}
+
+func (*UserFacMock) UpdatePassword(id uuid.UUID, password string, ctx context.Context) (*ent.User, error) {
+	return &ent.User{}, nil
+}
+
+type UserRepoMock struct {
+}
+
+func (*UserRepoMock) Create(*ent.UserCreate, context.Context) (*ent.User, error) {
+	return &ent.User{}, nil
+}
+
+func (*UserRepoMock) GetById(uuid.UUID, context.Context) (*ent.User, error) {
+	return &ent.User{}, nil
+}
+func (*UserRepoMock) DeleteUser(uuid.UUID, context.Context) error {
+	return nil
+
+}
+func (*UserRepoMock) GetByIdentifier(string, context.Context) (*ent.User, error) {
+	return &ent.User{}, nil
+
+}
+
+type AccessTokenRepositoryMock struct {
+}
+
+func (*AccessTokenRepositoryMock) Validate(user.Role, *string) (string, error) {
+	return "validated", nil
+}
+
+type RefreshTokenFactoryMock struct {
+}
+
+func (*RefreshTokenFactoryMock) Create(uuid.UUID) *ent.RefreshTokenCreate {
+	return &ent.RefreshTokenCreate{}
+}
+
+type LoggerMock struct {
+}
+
+func (*LoggerMock) Trace(format string, args ...any) {
+	fmt.Sprintf(format, args...)
+}
+func (*LoggerMock) Fatal(format string, args ...any) {
+	fmt.Sprintf(format, args...)
+}
+func (*LoggerMock) Warning(format string, args ...any) {
+	fmt.Sprintf(format, args...)
+}
+func (*LoggerMock) Info(format string, args ...any) {
+	fmt.Sprintf(format, args...)
+}
+func (*LoggerMock) Error(format string, args ...any) {
+	fmt.Sprintf(format, args...)
+}
+
+func TestLoginSuccess(t *testing.T) {
+	srv := Service{
+		log:                    &LoggerMock{},
+		encryptionService:      &EncryptionMock{},
+		userFactory:            &UserFacMock{},
+		refreshTokenFactory:    &RefreshTokenFactoryMock{},
+		accessTokenService:     &AccessTokenMock{},
+		userRepository:         &UserRepoMock{},
+		refreshTokenRepository: &RefreshTokenRepositoryMock{},
+	}
+
+	token, err := srv.Login(&types.LoginRequest{})
 
 	if err != nil {
-		t.Error("Get By Identifier Fail")
-		return
+		t.Log(err)
+		t.Fail()
 	}
-
-	// Validate password.
-	password := "password123"
-	if !CheckPasswordHash(password, "return True") {
-		t.Error("Password hash check failed")
-		return
-	}
-
-	// Create tokens for the user.
-	token, err := CreateTokens(user.UserID, user.UserRole)
-	if err != nil {
-		t.Errorf("Failed to create tokens: %v", err)
-		return
-	}
-
-	// Construct expected response.
-	_, err = TokenResponse{
-		Token: token,
-		User: AuthenticatedUser{
-			Id:        user.UserID,
-			FirstName: "Test",
-			LastName:  "Tester",
-			Email:     "Testmail@mail.com",
-			ProfilePhoto: FileResponse{
-				Key:    "somefile",
-				Bucket: "somebucket",
-			},
-			Role:  user.UserRole,
-			State: "ACTIVE",
-		},
-	}, nil
-
-}
-
-func TestLoginGetByIdFail(t *testing.T) {
-
-	// Simulate getting a user by identifier.
-	user, err := GetByIdentifierF()
-
-	if err != nil {
-		t.Log("Get By Identifier Fail So ")
-		return
-	}
-
-	// Validate password.
-	password := "password123"
-	if !CheckPasswordHash(password, "return True") {
-		t.Log("Password hash check failed, so it passed")
-		return
-	}
-
-	t.Fail()
-
-	// Create tokens for the user.
-	token, err := CreateTokens(user.UserID, user.UserRole)
-	if err != nil {
-		t.Errorf("Failed to create tokens: %v", err)
-		return
-	}
-
-	// Construct expected response.
-	_, err = TokenResponse{
-		Token: token,
-		User: AuthenticatedUser{
-			Id:        user.UserID,
-			FirstName: "Test",
-			LastName:  "Tester",
-			Email:     "Testmail@mail.com",
-			ProfilePhoto: FileResponse{
-				Key:    "somefile",
-				Bucket: "somebucket",
-			},
-			Role:  user.UserRole,
-			State: "ACTIVE",
-		},
-	}, nil
-
-}
-
-func TestLoginByCheckTokenFail(t *testing.T) {
-
-	// Simulate getting a user by identifier.
-	user, err := GetByIdentifier()
-
-	if err != nil {
-		t.Error("Get By Identifier Fail")
-		return
-	}
-
-	// Validate password.
-	password := "password123"
-	if !CheckPasswordHash(password, "return True") {
-		t.Error("Password hash check failed")
-		return
-	}
-
-	// Create tokens for the user.
-	token, err := CreateTokenFalse(user.UserID, user.UserRole)
-	if err != nil {
-		t.Logf("Failed to create tokens: %v", err)
-		return
-	}
-	t.Fail()
-
-	// Construct expected response.
-	_, err = TokenResponse{
-		Token: token,
-		User: AuthenticatedUser{
-			Id:        user.UserID,
-			FirstName: "Test",
-			LastName:  "Tester",
-			Email:     "Testmail@mail.com",
-			ProfilePhoto: FileResponse{
-				Key:    "somefile",
-				Bucket: "somebucket",
-			},
-			Role:  user.UserRole,
-			State: "ACTIVE",
-		},
-	}, nil
-
-}
-
-func TestLoginHashFalse(t *testing.T) {
-
-	// Simulate getting a user by identifier.
-	user, err := GetByIdentifier()
-
-	if err != nil {
-		t.Error("Get By Identifier Fail")
-		return
-	}
-
-	// Validate password.
-	password := "password123"
-	if !CheckPasswordHash(password, "") {
-		t.Log("Password hash check failed, so it passed")
-		return
-	}
-	t.Fail()
-
-	// Create tokens for the user.
-	token, err := CreateTokens(user.UserID, user.UserRole)
-	if err != nil {
-		t.Errorf("Failed to create tokens: %v", err)
-		return
-	}
-
-	// Construct expected response.
-	_, err = TokenResponse{
-		Token: token,
-		User: AuthenticatedUser{
-			Id:        user.UserID,
-			FirstName: "Test",
-			LastName:  "Tester",
-			Email:     "Testmail@mail.com",
-			ProfilePhoto: FileResponse{
-				Key:    "somefile",
-				Bucket: "somebucket",
-			},
-			Role:  user.UserRole,
-			State: "ACTIVE",
-		},
-	}, nil
-
+	t.Log(token)
 }

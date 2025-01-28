@@ -7,6 +7,7 @@ import (
 )
 
 func (srv *Service) Login(req *types.LoginRequest) (types.TokenResponse, error) {
+
 	user, err := srv.userRepository.GetByIdentifier(req.Email, context.Background())
 
 	if err != nil {
