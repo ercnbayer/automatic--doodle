@@ -41,8 +41,8 @@ func (*EncryptionMock) EncryptTokens(
 func (*EncryptionMock) DecryptTokens(string) (types.EncryptedTokenPayload, error) {
 	return types.EncryptedTokenPayload{}, nil
 }
-func (*EncryptionMock) CheckPasswordHash(string, string, string) bool {
-	return true
+func (*EncryptionMock) CheckPasswordHash(password string, _ string, _ string) bool {
+	return password == "password"
 }
 
 type AccessTokenMock struct {
@@ -140,11 +140,30 @@ func TestLoginSuccess(t *testing.T) {
 		refreshTokenRepository: &RefreshTokenRepositoryMock{},
 	}
 
-	token, err := srv.Login(&types.LoginRequest{})
+	token, err := srv.Login(&types.LoginRequest{Password: "password"})
 
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 	t.Log(token)
+}
+
+func TestLoginFail(t *testing.T) {
+	srv := Service{
+		log:                    &LoggerMock{},
+		encryptionService:      &EncryptionMock{},
+		userFactory:            &UserFacMock{},
+		refreshTokenFactory:    &RefreshTokenFactoryMock{},
+		accessTokenService:     &AccessTokenMock{},
+		userRepository:         &UserRepoMock{},
+		refreshTokenRepository: &RefreshTokenRepositoryMock{},
+	}
+
+	_, err := srv.Login(&types.LoginRequest{Password: ""})
+
+	if err == nil {
+		t.Log("Should have failed")
+		t.Fail()
+	}
 }
