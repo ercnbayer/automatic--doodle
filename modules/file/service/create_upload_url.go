@@ -24,6 +24,7 @@ func (svc *Service) CreateUploadUrl(
 		return types.CreateUploadUrlResponse{}, err
 	}
 
+	svc.logger.Info("URL:%s\n KEY:%s\n", url, objectKey)
 	return types.CreateUploadUrlResponse{
 		Url: url,
 		Key: objectKey,

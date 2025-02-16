@@ -6,11 +6,11 @@ import "automatic-doodle/ent/file"
 func (svc *Service) GetBucketName(fileType file.Type) string {
 	switch fileType {
 	case file.TypePOST_FILE:
-		return "post_files"
+		return "post-files"
 	case file.TypeCOVER_IMAGE:
-		return "cover_image"
+		return "cover-image"
 	case file.TypePROFILE_IMAGE:
-		return "profile_image"
+		return "profile-image"
 	default:
 		svc.logger.Error("Undefined file type: %s", fileType)
 		return "default"

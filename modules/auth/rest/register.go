@@ -30,6 +30,7 @@ func (r *Rest) Register(c *fiber.Ctx) error {
 		r.log.Info("service err")
 		return c.Status(400).JSON("Bad Req")
 	}
+	r.log.Info("Success")
 
 	return c.Status(200).JSON(tokens)
 }
