@@ -28,6 +28,8 @@ func (w *Websocket) WebSocketHandler(hub *Hub) fiber.Handler {
 			user: authUser,
 			send: make(chan []byte, 4096),
 		}
+
+		log.Println(client.user)
 		hub.register <- client
 
 		go client.Write(hub)

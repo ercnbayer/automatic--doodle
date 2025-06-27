@@ -63,6 +63,10 @@ func (c *Client) Read(hub *Hub) {
 
 		pm.From = c.user
 
+		fmt.Println("Private message")
+		fmt.Println(pm.From)
+		fmt.Println(pm.Message)
+		fmt.Println(pm.To)
 		hub.privateMessage <- &pm
 
 	}
