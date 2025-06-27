@@ -48,6 +48,7 @@ func Wire(
 		JobApplRestProviderSet,
 		S3ClientProviderSet,
 		ProfileRestProvider,
+		WebsocketProviderSet,
 		RouterProviderSet,
 		ServerProviderSet,
 	))

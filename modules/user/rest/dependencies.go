@@ -17,5 +17,6 @@ type UserRepository interface {
 	//Create(*ent.UserCreate, context.Context) (*ent.User, error)
 	DeleteUser(id uuid.UUID, ctx context.Context) error
 	GetById(id uuid.UUID, ctx context.Context) (*ent.User, error)
+	GetAllUsers(ctx context.Context) ([]*ent.User, error)
 	UpdateUser(context.Context, types.UpdateUserReq, uuid.UUID) (*ent.User, error)
 }

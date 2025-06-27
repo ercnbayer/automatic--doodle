@@ -18,6 +18,7 @@ func New(
 	fileHandler FileHandler,
 	jobHandler JobHandler,
 	jobApplHandler JobApplHandler,
+	websocketHandler WebsocketHandler,
 ) *Router {
 	moduleOnce.Do(func() {
 		module = Router{
@@ -28,6 +29,7 @@ func New(
 				fileHandler.GetRoutes(),
 				jobHandler.GetRoutes(),
 				jobApplHandler.GetRoutes(),
+				websocketHandler.GetRoutes(),
 			),
 		}
 	})

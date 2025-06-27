@@ -24,6 +24,15 @@ func (r *Rest) loginUser(c *fiber.Ctx) error {
 		return errors.New("USER LOGIN", "SERVICE ERROR")
 	}
 
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    response.Token,
+		HTTPOnly: true,
+		Secure:   true, // prod'da zorunlu
+		SameSite: "Strict",
+		Path:     "/",
+	})
+
 	return c.Status(200).JSON(response)
 
 }

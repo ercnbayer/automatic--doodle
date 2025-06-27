@@ -1,0 +1,39 @@
+Test Users for Automatic Doodle
+================================
+
+1. Email: john.doe@test.com
+   Password: Test123!@#
+
+2. Email: jane.smith@test.com
+   Password: Secure456!@#
+
+3. Email: bob.johnson@test.com
+   Password: Strong789!@#
+
+4. Email: alice.wilson@test.com
+   Password: Safe321!@#
+
+5. Email: charlie.brown@test.com
+   Password: Protect654!@#
+
+6. Email: diana.prince@test.com
+   Password: Guard987!@#
+
+7. Email: edward.norton@test.com
+   Password: Shield147!@#
+
+8. Email: fiona.gallagher@test.com
+   Password: Defend258!@#
+
+9. Email: george.martin@test.com
+   Password: Secure369!@#
+
+10. Email: helen.keller@test.com
+    Password: Protect741!@#
+
+All passwords follow the validation rules:
+- Minimum 8 characters
+- At least 1 uppercase letter
+- At least 1 lowercase letter
+- At least 1 number
+- At least 1 special character 

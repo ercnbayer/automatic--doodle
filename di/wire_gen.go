@@ -32,6 +32,7 @@ import (
 	repository2 "automatic-doodle/modules/user/repository"
 	"automatic-doodle/modules/user/rest"
 	service3 "automatic-doodle/modules/user/service"
+	"automatic-doodle/modules/user/websocket"
 	"automatic-doodle/pkg/config"
 	"automatic-doodle/pkg/encryption"
 	"automatic-doodle/pkg/postgres"
@@ -95,7 +96,8 @@ func Wire(db *ent.Client) *server.Server {
 	service10 := service6.New(factory8, repository8, repository7, userRepository)
 	logger7 := _wireLoggerValue13
 	rest11 := rest6.New(service10, logger7, middlewareMiddleware)
-	routerRouter := router.New(restRest, rest7, rest8, rest9, rest10, rest11)
+	websocketWebsocket := websocket.New(middlewareMiddleware, userRepository)
+	routerRouter := router.New(restRest, rest7, rest8, rest9, rest10, rest11, websocketWebsocket)
 	serverServer := server.New(configModule, serverLogger, routerRouter)
 	return serverServer
 }

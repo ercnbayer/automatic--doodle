@@ -76,7 +76,7 @@ func (server *Server) enableCors() {
 		cors.Config{
 			Next:             nil,
 			AllowOriginsFunc: nil,
-			AllowOrigins:     "*",
+			AllowOrigins:     "http://localhost:3000",
 			AllowMethods: strings.Join(
 				[]string{
 					fiber.MethodGet,
@@ -90,7 +90,7 @@ func (server *Server) enableCors() {
 				",",
 			),
 			AllowHeaders:     "",
-			AllowCredentials: false,
+			AllowCredentials: true,
 			ExposeHeaders:    "",
 			MaxAge:           0,
 		},

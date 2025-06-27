@@ -24,7 +24,13 @@ func (r *Rest) GetRoutes() []types.HandlerItem {
 				r.ViewUser,
 			},
 		},
-
+		{
+			Path:   "user/all",
+			Method: "GET",
+			Handler: []func(*fiber.Ctx) error{
+				r.GetAllUsers,
+			},
+		},
 		{
 			Path:   "user/update",
 			Method: "PATCH",

@@ -9,6 +9,7 @@ import (
 	ProfileRest "automatic-doodle/modules/profile/rest"
 	"automatic-doodle/modules/router"
 	userRest "automatic-doodle/modules/user/rest"
+	"automatic-doodle/modules/user/websocket"
 
 	logger "github.com/Wodemy-Labs/crawl"
 
@@ -43,6 +44,7 @@ var (
 		wire.Bind(new(FileRest.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
 		wire.Bind(new(jobRest.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
 		wire.Bind(new(jobApplRest.AuthMiddleware), new(*authenticationMiddleware.Middleware)),
+		wire.Bind(new(websocket.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
 
 		wire.InterfaceValue(new(authenticationMiddleware.Logger), logger.New("Authentication Middleware Logger", nil)),
 	)

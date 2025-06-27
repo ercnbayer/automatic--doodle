@@ -10,6 +10,7 @@ import (
 	UserRepo "automatic-doodle/modules/user/repository"
 	UserRest "automatic-doodle/modules/user/rest"
 	UserService "automatic-doodle/modules/user/service"
+	"automatic-doodle/modules/user/websocket"
 
 	logger "github.com/Wodemy-Labs/crawl"
 	"github.com/google/wire"
@@ -27,6 +28,7 @@ var (
 		wire.Bind(new(authService.UserRepository), new(*UserRepo.UserRepository)),
 		wire.Bind(new(JobService.UserRepository), new(*UserRepo.UserRepository)),
 		wire.Bind(new(JobApplService.UserRepository), new(*UserRepo.UserRepository)),
+		wire.Bind(new(websocket.UserRepository), new(*UserRepo.UserRepository)),
 		wire.Bind(new(UserRest.UserRepository), new(*UserRepo.UserRepository)))
 
 	UserRestProviderSet wire.ProviderSet = wire.NewSet(UserRest.New,
