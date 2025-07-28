@@ -46,6 +46,10 @@ const (
 	EdgeJobs = "jobs"
 	// EdgeJobappl holds the string denoting the jobappl edge name in mutations.
 	EdgeJobappl = "jobappl"
+	// EdgeReceivedMessages holds the string denoting the received_messages edge name in mutations.
+	EdgeReceivedMessages = "received_messages"
+	// EdgeSentMessages holds the string denoting the sent_messages edge name in mutations.
+	EdgeSentMessages = "sent_messages"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RefreshTokensTable is the table that holds the refresh_tokens relation/edge.
@@ -83,6 +87,20 @@ const (
 	JobapplInverseTable = "job_applications"
 	// JobapplColumn is the table column denoting the jobappl relation/edge.
 	JobapplColumn = "user_id"
+	// ReceivedMessagesTable is the table that holds the received_messages relation/edge.
+	ReceivedMessagesTable = "messages"
+	// ReceivedMessagesInverseTable is the table name for the Messages entity.
+	// It exists in this package in order to avoid circular dependency with the "messages" package.
+	ReceivedMessagesInverseTable = "messages"
+	// ReceivedMessagesColumn is the table column denoting the received_messages relation/edge.
+	ReceivedMessagesColumn = "to"
+	// SentMessagesTable is the table that holds the sent_messages relation/edge.
+	SentMessagesTable = "messages"
+	// SentMessagesInverseTable is the table name for the Messages entity.
+	// It exists in this package in order to avoid circular dependency with the "messages" package.
+	SentMessagesInverseTable = "messages"
+	// SentMessagesColumn is the table column denoting the sent_messages relation/edge.
+	SentMessagesColumn = "from"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -304,6 +322,34 @@ func ByJobappl(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newJobapplStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByReceivedMessagesCount orders the results by received_messages count.
+func ByReceivedMessagesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newReceivedMessagesStep(), opts...)
+	}
+}
+
+// ByReceivedMessages orders the results by received_messages terms.
+func ByReceivedMessages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReceivedMessagesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySentMessagesCount orders the results by sent_messages count.
+func BySentMessagesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSentMessagesStep(), opts...)
+	}
+}
+
+// BySentMessages orders the results by sent_messages terms.
+func BySentMessages(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSentMessagesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newRefreshTokensStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -337,5 +383,19 @@ func newJobapplStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(JobapplInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, JobapplTable, JobapplColumn),
+	)
+}
+func newReceivedMessagesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ReceivedMessagesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ReceivedMessagesTable, ReceivedMessagesColumn),
+	)
+}
+func newSentMessagesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SentMessagesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SentMessagesTable, SentMessagesColumn),
 	)
 }

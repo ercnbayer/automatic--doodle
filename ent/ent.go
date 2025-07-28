@@ -6,6 +6,7 @@ import (
 	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
+	"automatic-doodle/ent/messages"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
 	"context"
@@ -80,6 +81,7 @@ func checkColumn(table, column string) error {
 			file.Table:           file.ValidColumn,
 			job.Table:            job.ValidColumn,
 			jobapplication.Table: jobapplication.ValidColumn,
+			messages.Table:       messages.ValidColumn,
 			refreshtoken.Table:   refreshtoken.ValidColumn,
 			user.Table:           user.ValidColumn,
 		})

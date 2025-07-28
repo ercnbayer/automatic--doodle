@@ -28,7 +28,7 @@ func (r *Rest) loginUser(c *fiber.Ctx) error {
 		Name:     "token",
 		Value:    response.Token,
 		HTTPOnly: true,
-		Secure:   true, // prod'da zorunlu
+		Secure:   true,
 		SameSite: "Strict",
 		Path:     "/",
 	})

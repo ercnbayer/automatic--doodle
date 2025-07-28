@@ -21,6 +21,7 @@ func (r *Rest) UpdateProfilePhoto(c *fiber.Ctx) error {
 
 		return err
 	}
+
 	pUser := c.Locals("user")
 
 	userItem, ok := pUser.(types.AuthenticatedUser)

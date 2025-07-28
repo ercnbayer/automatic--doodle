@@ -59,9 +59,13 @@ type UserEdges struct {
 	Jobs []*Job `json:"jobs,omitempty"`
 	// Jobappl holds the value of the jobappl edge.
 	Jobappl []*JobApplication `json:"jobappl,omitempty"`
+	// ReceivedMessages holds the value of the received_messages edge.
+	ReceivedMessages []*Messages `json:"received_messages,omitempty"`
+	// SentMessages holds the value of the sent_messages edge.
+	SentMessages []*Messages `json:"sent_messages,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [7]bool
 }
 
 // RefreshTokensOrErr returns the RefreshTokens value or an error if the edge
@@ -111,6 +115,24 @@ func (e UserEdges) JobapplOrErr() ([]*JobApplication, error) {
 		return e.Jobappl, nil
 	}
 	return nil, &NotLoadedError{edge: "jobappl"}
+}
+
+// ReceivedMessagesOrErr returns the ReceivedMessages value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ReceivedMessagesOrErr() ([]*Messages, error) {
+	if e.loadedTypes[5] {
+		return e.ReceivedMessages, nil
+	}
+	return nil, &NotLoadedError{edge: "received_messages"}
+}
+
+// SentMessagesOrErr returns the SentMessages value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) SentMessagesOrErr() ([]*Messages, error) {
+	if e.loadedTypes[6] {
+		return e.SentMessages, nil
+	}
+	return nil, &NotLoadedError{edge: "sent_messages"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -259,6 +281,16 @@ func (u *User) QueryJobs() *JobQuery {
 // QueryJobappl queries the "jobappl" edge of the User entity.
 func (u *User) QueryJobappl() *JobApplicationQuery {
 	return NewUserClient(u.config).QueryJobappl(u)
+}
+
+// QueryReceivedMessages queries the "received_messages" edge of the User entity.
+func (u *User) QueryReceivedMessages() *MessagesQuery {
+	return NewUserClient(u.config).QueryReceivedMessages(u)
+}
+
+// QuerySentMessages queries the "sent_messages" edge of the User entity.
+func (u *User) QuerySentMessages() *MessagesQuery {
+	return NewUserClient(u.config).QuerySentMessages(u)
 }
 
 // Update returns a builder for updating this User.

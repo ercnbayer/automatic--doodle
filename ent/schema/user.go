@@ -61,6 +61,10 @@ func (User) Edges() []ent.Edge {
 		edge.To("cover_image", File.Type).
 			Unique(),
 		edge.To("jobs", Job.Type),
-		edge.To("jobappl", JobApplication.Type), // Add job applications
+		edge.To("jobappl", JobApplication.Type), // Add job application
+
+		edge.To("received_messages", Messages.Type),
+
+		edge.To("sent_messages", Messages.Type),
 	}
 }

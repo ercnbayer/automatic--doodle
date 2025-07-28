@@ -6,6 +6,7 @@ import (
 	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
+	"automatic-doodle/ent/messages"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/schema"
 	"automatic-doodle/ent/user"
@@ -166,6 +167,20 @@ func init() {
 	jobapplicationDescID := jobapplicationFields[0].Descriptor()
 	// jobapplication.DefaultID holds the default value on creation for the id field.
 	jobapplication.DefaultID = jobapplicationDescID.Default.(func() uuid.UUID)
+	messagesFields := schema.Messages{}.Fields()
+	_ = messagesFields
+	// messagesDescMessage is the schema descriptor for message field.
+	messagesDescMessage := messagesFields[3].Descriptor()
+	// messages.MessageValidator is a validator for the "message" field. It is called by the builders before save.
+	messages.MessageValidator = messagesDescMessage.Validators[0].(func(string) error)
+	// messagesDescCreatedAt is the schema descriptor for created_at field.
+	messagesDescCreatedAt := messagesFields[4].Descriptor()
+	// messages.DefaultCreatedAt holds the default value on creation for the created_at field.
+	messages.DefaultCreatedAt = messagesDescCreatedAt.Default.(func() time.Time)
+	// messagesDescID is the schema descriptor for id field.
+	messagesDescID := messagesFields[0].Descriptor()
+	// messages.DefaultID holds the default value on creation for the id field.
+	messages.DefaultID = messagesDescID.Default.(func() uuid.UUID)
 	refreshtokenFields := schema.RefreshToken{}.Fields()
 	_ = refreshtokenFields
 	// refreshtokenDescToken is the schema descriptor for token field.

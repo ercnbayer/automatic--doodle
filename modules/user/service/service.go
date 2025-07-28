@@ -14,14 +14,19 @@ var (
 	module     UserService
 )
 
-func New(ur UserRepository, uf UserFactory, ff FileFactory, fr FileRepository) *UserService {
+func New(
+	userRepository UserRepository,
+	userFactory UserFactory,
+	fileFactory FileFactory,
+	fileRepository FileRepository,
+) *UserService {
 
 	moduleOnce.Do(func() {
 		module = UserService{
-			userRepository: ur,
-			userFactory:    uf,
-			fileFactory:    ff,
-			fileRepository: fr,
+			userRepository: userRepository,
+			userFactory:    userFactory,
+			fileFactory:    fileFactory,
+			fileRepository: fileRepository,
 		}
 	})
 

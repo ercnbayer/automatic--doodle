@@ -14,6 +14,7 @@ import (
 	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
+	"automatic-doodle/ent/messages"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
 
@@ -35,6 +36,8 @@ type Client struct {
 	Job *JobClient
 	// JobApplication is the client for interacting with the JobApplication builders.
 	JobApplication *JobApplicationClient
+	// Messages is the client for interacting with the Messages builders.
+	Messages *MessagesClient
 	// RefreshToken is the client for interacting with the RefreshToken builders.
 	RefreshToken *RefreshTokenClient
 	// User is the client for interacting with the User builders.
@@ -53,6 +56,7 @@ func (c *Client) init() {
 	c.File = NewFileClient(c.config)
 	c.Job = NewJobClient(c.config)
 	c.JobApplication = NewJobApplicationClient(c.config)
+	c.Messages = NewMessagesClient(c.config)
 	c.RefreshToken = NewRefreshTokenClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -150,6 +154,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		File:           NewFileClient(cfg),
 		Job:            NewJobClient(cfg),
 		JobApplication: NewJobApplicationClient(cfg),
+		Messages:       NewMessagesClient(cfg),
 		RefreshToken:   NewRefreshTokenClient(cfg),
 		User:           NewUserClient(cfg),
 	}, nil
@@ -174,6 +179,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		File:           NewFileClient(cfg),
 		Job:            NewJobClient(cfg),
 		JobApplication: NewJobApplicationClient(cfg),
+		Messages:       NewMessagesClient(cfg),
 		RefreshToken:   NewRefreshTokenClient(cfg),
 		User:           NewUserClient(cfg),
 	}, nil
@@ -204,21 +210,21 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.File.Use(hooks...)
-	c.Job.Use(hooks...)
-	c.JobApplication.Use(hooks...)
-	c.RefreshToken.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.File, c.Job, c.JobApplication, c.Messages, c.RefreshToken, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.File.Intercept(interceptors...)
-	c.Job.Intercept(interceptors...)
-	c.JobApplication.Intercept(interceptors...)
-	c.RefreshToken.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.File, c.Job, c.JobApplication, c.Messages, c.RefreshToken, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -230,6 +236,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Job.mutate(ctx, m)
 	case *JobApplicationMutation:
 		return c.JobApplication.mutate(ctx, m)
+	case *MessagesMutation:
+		return c.Messages.mutate(ctx, m)
 	case *RefreshTokenMutation:
 		return c.RefreshToken.mutate(ctx, m)
 	case *UserMutation:
@@ -702,6 +710,171 @@ func (c *JobApplicationClient) mutate(ctx context.Context, m *JobApplicationMuta
 	}
 }
 
+// MessagesClient is a client for the Messages schema.
+type MessagesClient struct {
+	config
+}
+
+// NewMessagesClient returns a client for the Messages from the given config.
+func NewMessagesClient(c config) *MessagesClient {
+	return &MessagesClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `messages.Hooks(f(g(h())))`.
+func (c *MessagesClient) Use(hooks ...Hook) {
+	c.hooks.Messages = append(c.hooks.Messages, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `messages.Intercept(f(g(h())))`.
+func (c *MessagesClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Messages = append(c.inters.Messages, interceptors...)
+}
+
+// Create returns a builder for creating a Messages entity.
+func (c *MessagesClient) Create() *MessagesCreate {
+	mutation := newMessagesMutation(c.config, OpCreate)
+	return &MessagesCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Messages entities.
+func (c *MessagesClient) CreateBulk(builders ...*MessagesCreate) *MessagesCreateBulk {
+	return &MessagesCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MessagesClient) MapCreateBulk(slice any, setFunc func(*MessagesCreate, int)) *MessagesCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MessagesCreateBulk{err: fmt.Errorf("calling to MessagesClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MessagesCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MessagesCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Messages.
+func (c *MessagesClient) Update() *MessagesUpdate {
+	mutation := newMessagesMutation(c.config, OpUpdate)
+	return &MessagesUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessagesClient) UpdateOne(m *Messages) *MessagesUpdateOne {
+	mutation := newMessagesMutation(c.config, OpUpdateOne, withMessages(m))
+	return &MessagesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessagesClient) UpdateOneID(id uuid.UUID) *MessagesUpdateOne {
+	mutation := newMessagesMutation(c.config, OpUpdateOne, withMessagesID(id))
+	return &MessagesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Messages.
+func (c *MessagesClient) Delete() *MessagesDelete {
+	mutation := newMessagesMutation(c.config, OpDelete)
+	return &MessagesDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MessagesClient) DeleteOne(m *Messages) *MessagesDeleteOne {
+	return c.DeleteOneID(m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MessagesClient) DeleteOneID(id uuid.UUID) *MessagesDeleteOne {
+	builder := c.Delete().Where(messages.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessagesDeleteOne{builder}
+}
+
+// Query returns a query builder for Messages.
+func (c *MessagesClient) Query() *MessagesQuery {
+	return &MessagesQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMessages},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Messages entity by its id.
+func (c *MessagesClient) Get(ctx context.Context, id uuid.UUID) (*Messages, error) {
+	return c.Query().Where(messages.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessagesClient) GetX(ctx context.Context, id uuid.UUID) *Messages {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySender queries the sender edge of a Messages.
+func (c *MessagesClient) QuerySender(m *Messages) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messages.Table, messages.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, messages.SenderTable, messages.SenderColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReceiver queries the receiver edge of a Messages.
+func (c *MessagesClient) QueryReceiver(m *Messages) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(messages.Table, messages.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, messages.ReceiverTable, messages.ReceiverColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MessagesClient) Hooks() []Hook {
+	return c.hooks.Messages
+}
+
+// Interceptors returns the client interceptors.
+func (c *MessagesClient) Interceptors() []Interceptor {
+	return c.inters.Messages
+}
+
+func (c *MessagesClient) mutate(ctx context.Context, m *MessagesMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MessagesCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MessagesUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MessagesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MessagesDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Messages mutation op: %q", m.Op())
+	}
+}
+
 // RefreshTokenClient is a client for the RefreshToken schema.
 type RefreshTokenClient struct {
 	config
@@ -1039,6 +1212,38 @@ func (c *UserClient) QueryJobappl(u *User) *JobApplicationQuery {
 	return query
 }
 
+// QueryReceivedMessages queries the received_messages edge of a User.
+func (c *UserClient) QueryReceivedMessages(u *User) *MessagesQuery {
+	query := (&MessagesClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(messages.Table, messages.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReceivedMessagesTable, user.ReceivedMessagesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySentMessages queries the sent_messages edge of a User.
+func (c *UserClient) QuerySentMessages(u *User) *MessagesQuery {
+	query := (&MessagesClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(messages.Table, messages.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SentMessagesTable, user.SentMessagesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1067,9 +1272,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		File, Job, JobApplication, RefreshToken, User []ent.Hook
+		File, Job, JobApplication, Messages, RefreshToken, User []ent.Hook
 	}
 	inters struct {
-		File, Job, JobApplication, RefreshToken, User []ent.Interceptor
+		File, Job, JobApplication, Messages, RefreshToken, User []ent.Interceptor
 	}
 )

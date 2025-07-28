@@ -26,3 +26,7 @@ type JobApplHandler interface {
 type WebsocketHandler interface {
 	GetRoutes() []types.HandlerItem
 }
+
+type MessageHandler interface {
+	GetRoutes() []types.HandlerItem
+}

@@ -19,6 +19,7 @@ func New(
 	jobHandler JobHandler,
 	jobApplHandler JobApplHandler,
 	websocketHandler WebsocketHandler,
+	messageHandler MessageHandler,
 ) *Router {
 	moduleOnce.Do(func() {
 		module = Router{
@@ -30,6 +31,7 @@ func New(
 				jobHandler.GetRoutes(),
 				jobApplHandler.GetRoutes(),
 				websocketHandler.GetRoutes(),
+				messageHandler.GetRoutes(),
 			),
 		}
 	})

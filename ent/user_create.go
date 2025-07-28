@@ -6,6 +6,7 @@ import (
 	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
+	"automatic-doodle/ent/messages"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
 	"context"
@@ -196,6 +197,36 @@ func (uc *UserCreate) AddJobappl(j ...*JobApplication) *UserCreate {
 		ids[i] = j[i].ID
 	}
 	return uc.AddJobapplIDs(ids...)
+}
+
+// AddReceivedMessageIDs adds the "received_messages" edge to the Messages entity by IDs.
+func (uc *UserCreate) AddReceivedMessageIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddReceivedMessageIDs(ids...)
+	return uc
+}
+
+// AddReceivedMessages adds the "received_messages" edges to the Messages entity.
+func (uc *UserCreate) AddReceivedMessages(m ...*Messages) *UserCreate {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return uc.AddReceivedMessageIDs(ids...)
+}
+
+// AddSentMessageIDs adds the "sent_messages" edge to the Messages entity by IDs.
+func (uc *UserCreate) AddSentMessageIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddSentMessageIDs(ids...)
+	return uc
+}
+
+// AddSentMessages adds the "sent_messages" edges to the Messages entity.
+func (uc *UserCreate) AddSentMessages(m ...*Messages) *UserCreate {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return uc.AddSentMessageIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -469,6 +500,38 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(jobapplication.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ReceivedMessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReceivedMessagesTable,
+			Columns: []string{user.ReceivedMessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messages.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.SentMessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SentMessagesTable,
+			Columns: []string{user.SentMessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(messages.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

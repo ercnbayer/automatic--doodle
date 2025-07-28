@@ -24,6 +24,10 @@ import (
 	repository5 "automatic-doodle/modules/jobAppl/repository"
 	rest6 "automatic-doodle/modules/jobAppl/rest"
 	service6 "automatic-doodle/modules/jobAppl/service"
+	factory6 "automatic-doodle/modules/messages/factory"
+	repository6 "automatic-doodle/modules/messages/repository"
+	rest7 "automatic-doodle/modules/messages/rest"
+	service8 "automatic-doodle/modules/messages/service"
 	rest3 "automatic-doodle/modules/profile/rest"
 	"automatic-doodle/modules/refresh-token/factory"
 	"automatic-doodle/modules/refresh-token/repository"
@@ -33,6 +37,7 @@ import (
 	"automatic-doodle/modules/user/rest"
 	service3 "automatic-doodle/modules/user/service"
 	"automatic-doodle/modules/user/websocket"
+	service7 "automatic-doodle/modules/user/websocket/service"
 	"automatic-doodle/pkg/config"
 	"automatic-doodle/pkg/encryption"
 	"automatic-doodle/pkg/postgres"
@@ -70,34 +75,39 @@ func Wire(db *ent.Client) *server.Server {
 	factoryFactory := factory.New(db, encryptionModule)
 	userFactory := factory2.New(db, encryptionModule)
 	userRepository := repository2.New(db)
-	service7 := service2.New(serviceLogger, encryptionModule, serviceService, repositoryRepository, factoryFactory, userFactory, userRepository)
-	middlewareMiddleware := middleware.New(middlewareLogger, service7)
+	service9 := service2.New(serviceLogger, encryptionModule, serviceService, repositoryRepository, factoryFactory, userFactory, userRepository)
+	middlewareMiddleware := middleware.New(middlewareLogger, service9)
 	restRest := rest.New(middlewareMiddleware, userRepository)
 	restLogger := _wireLoggerValue7
-	rest7 := rest2.New(restLogger, service7, middlewareMiddleware)
-	factory6 := factory3.New(db)
-	repository6 := repository3.New(db)
-	userService := service3.New(userRepository, userFactory, factory6, repository6)
+	rest8 := rest2.New(restLogger, service9, middlewareMiddleware)
+	factory7 := factory3.New(db)
+	repository7 := repository3.New(db)
+	userService := service3.New(userRepository, userFactory, factory7, repository7)
 	logger3 := _wireLoggerValue8
-	rest8 := rest3.New(middlewareMiddleware, userService, logger3)
+	rest9 := rest3.New(middlewareMiddleware, userService, logger3)
 	logger4 := _wireLoggerValue9
 	logger5 := _wireLoggerValue10
 	s3clientLogger := _wireLoggerValue11
 	s3clientService := s3client.New(s3clientLogger, configModule)
-	service8 := service4.New(logger5, repository6, factory6, s3clientService)
-	rest9 := rest4.New(logger4, service8, middlewareMiddleware)
-	factory7 := factory4.New(db)
-	repository7 := repository4.New(db)
-	service9 := service5.New(repository7, userRepository)
+	service10 := service4.New(logger5, repository7, factory7, s3clientService)
+	rest10 := rest4.New(logger4, service10, middlewareMiddleware)
+	factory8 := factory4.New(db)
+	repository8 := repository4.New(db)
+	service11 := service5.New(repository8, userRepository)
 	logger6 := _wireLoggerValue12
-	rest10 := rest5.New(middlewareMiddleware, factory7, repository7, service9, logger6)
-	factory8 := factory5.New(db)
-	repository8 := repository5.New()
-	service10 := service6.New(factory8, repository8, repository7, userRepository)
+	rest11 := rest5.New(middlewareMiddleware, factory8, repository8, service11, logger6)
+	factory9 := factory5.New(db)
+	repository9 := repository5.New()
+	service12 := service6.New(factory9, repository9, repository8, userRepository)
 	logger7 := _wireLoggerValue13
-	rest11 := rest6.New(service10, logger7, middlewareMiddleware)
-	websocketWebsocket := websocket.New(middlewareMiddleware, userRepository)
-	routerRouter := router.New(restRest, rest7, rest8, rest9, rest10, rest11, websocketWebsocket)
+	rest12 := rest6.New(service12, logger7, middlewareMiddleware)
+	factory10 := factory6.New(db)
+	repository10 := repository6.New()
+	websocketService := service7.New(factory10, repository10)
+	websocketWebsocket := websocket.New(middlewareMiddleware, userRepository, websocketService)
+	service13 := service8.New(repository10)
+	rest13 := rest7.New(service13, middlewareMiddleware)
+	routerRouter := router.New(restRest, rest8, rest9, rest10, rest11, rest12, websocketWebsocket, rest13)
 	serverServer := server.New(configModule, serverLogger, routerRouter)
 	return serverServer
 }

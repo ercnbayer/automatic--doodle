@@ -6,6 +6,7 @@ import (
 	"automatic-doodle/ent/file"
 	"automatic-doodle/ent/job"
 	"automatic-doodle/ent/jobapplication"
+	"automatic-doodle/ent/messages"
 	"automatic-doodle/ent/predicate"
 	"automatic-doodle/ent/refreshtoken"
 	"automatic-doodle/ent/user"
@@ -24,16 +25,18 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx               *QueryContext
-	order             []user.OrderOption
-	inters            []Interceptor
-	predicates        []predicate.User
-	withRefreshTokens *RefreshTokenQuery
-	withProfileImage  *FileQuery
-	withCoverImage    *FileQuery
-	withJobs          *JobQuery
-	withJobappl       *JobApplicationQuery
-	withFKs           bool
+	ctx                  *QueryContext
+	order                []user.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.User
+	withRefreshTokens    *RefreshTokenQuery
+	withProfileImage     *FileQuery
+	withCoverImage       *FileQuery
+	withJobs             *JobQuery
+	withJobappl          *JobApplicationQuery
+	withReceivedMessages *MessagesQuery
+	withSentMessages     *MessagesQuery
+	withFKs              bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -173,6 +176,50 @@ func (uq *UserQuery) QueryJobappl() *JobApplicationQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(jobapplication.Table, jobapplication.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.JobapplTable, user.JobapplColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReceivedMessages chains the current query on the "received_messages" edge.
+func (uq *UserQuery) QueryReceivedMessages() *MessagesQuery {
+	query := (&MessagesClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(messages.Table, messages.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReceivedMessagesTable, user.ReceivedMessagesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySentMessages chains the current query on the "sent_messages" edge.
+func (uq *UserQuery) QuerySentMessages() *MessagesQuery {
+	query := (&MessagesClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(messages.Table, messages.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SentMessagesTable, user.SentMessagesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -367,16 +414,18 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:            uq.config,
-		ctx:               uq.ctx.Clone(),
-		order:             append([]user.OrderOption{}, uq.order...),
-		inters:            append([]Interceptor{}, uq.inters...),
-		predicates:        append([]predicate.User{}, uq.predicates...),
-		withRefreshTokens: uq.withRefreshTokens.Clone(),
-		withProfileImage:  uq.withProfileImage.Clone(),
-		withCoverImage:    uq.withCoverImage.Clone(),
-		withJobs:          uq.withJobs.Clone(),
-		withJobappl:       uq.withJobappl.Clone(),
+		config:               uq.config,
+		ctx:                  uq.ctx.Clone(),
+		order:                append([]user.OrderOption{}, uq.order...),
+		inters:               append([]Interceptor{}, uq.inters...),
+		predicates:           append([]predicate.User{}, uq.predicates...),
+		withRefreshTokens:    uq.withRefreshTokens.Clone(),
+		withProfileImage:     uq.withProfileImage.Clone(),
+		withCoverImage:       uq.withCoverImage.Clone(),
+		withJobs:             uq.withJobs.Clone(),
+		withJobappl:          uq.withJobappl.Clone(),
+		withReceivedMessages: uq.withReceivedMessages.Clone(),
+		withSentMessages:     uq.withSentMessages.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -435,6 +484,28 @@ func (uq *UserQuery) WithJobappl(opts ...func(*JobApplicationQuery)) *UserQuery 
 		opt(query)
 	}
 	uq.withJobappl = query
+	return uq
+}
+
+// WithReceivedMessages tells the query-builder to eager-load the nodes that are connected to
+// the "received_messages" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithReceivedMessages(opts ...func(*MessagesQuery)) *UserQuery {
+	query := (&MessagesClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withReceivedMessages = query
+	return uq
+}
+
+// WithSentMessages tells the query-builder to eager-load the nodes that are connected to
+// the "sent_messages" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithSentMessages(opts ...func(*MessagesQuery)) *UserQuery {
+	query := (&MessagesClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withSentMessages = query
 	return uq
 }
 
@@ -517,12 +588,14 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [7]bool{
 			uq.withRefreshTokens != nil,
 			uq.withProfileImage != nil,
 			uq.withCoverImage != nil,
 			uq.withJobs != nil,
 			uq.withJobappl != nil,
+			uq.withReceivedMessages != nil,
+			uq.withSentMessages != nil,
 		}
 	)
 	if uq.withProfileImage != nil || uq.withCoverImage != nil {
@@ -579,6 +652,20 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadJobappl(ctx, query, nodes,
 			func(n *User) { n.Edges.Jobappl = []*JobApplication{} },
 			func(n *User, e *JobApplication) { n.Edges.Jobappl = append(n.Edges.Jobappl, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withReceivedMessages; query != nil {
+		if err := uq.loadReceivedMessages(ctx, query, nodes,
+			func(n *User) { n.Edges.ReceivedMessages = []*Messages{} },
+			func(n *User, e *Messages) { n.Edges.ReceivedMessages = append(n.Edges.ReceivedMessages, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withSentMessages; query != nil {
+		if err := uq.loadSentMessages(ctx, query, nodes,
+			func(n *User) { n.Edges.SentMessages = []*Messages{} },
+			func(n *User, e *Messages) { n.Edges.SentMessages = append(n.Edges.SentMessages, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -734,6 +821,66 @@ func (uq *UserQuery) loadJobappl(ctx context.Context, query *JobApplicationQuery
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadReceivedMessages(ctx context.Context, query *MessagesQuery, nodes []*User, init func(*User), assign func(*User, *Messages)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(messages.FieldTo)
+	}
+	query.Where(predicate.Messages(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ReceivedMessagesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.To
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "to" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadSentMessages(ctx context.Context, query *MessagesQuery, nodes []*User, init func(*User), assign func(*User, *Messages)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(messages.FieldFrom)
+	}
+	query.Where(predicate.Messages(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.SentMessagesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.From
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "from" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

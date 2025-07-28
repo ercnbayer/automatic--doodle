@@ -1,6 +1,8 @@
 package websocket
 
 import (
+	"automatic-doodle/types"
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -22,10 +24,17 @@ func (hub *Hub) Run() {
 			close(client.send)
 			client.conn.Close()
 		case msg := <-hub.privateMessage:
+			err := hub.websocketService.CreateMessage(msg, context.Background())
+			if err != nil {
+				if sender, ok := hub.clients[msg.From.Id]; ok {
+					fmt.Println("Error in sending message:", err)
+					sender.send <- msg
+				}
+			}
+
 			if receiver, ok := hub.clients[msg.To]; ok {
 				fmt.Println("Message sent to client", msg)
-				jsonMsg, _ := json.Marshal(msg)
-				receiver.send <- jsonMsg
+				receiver.send <- msg
 			}
 		}
 
@@ -53,7 +62,7 @@ func (c *Client) Read(hub *Hub) {
 			break
 		}
 
-		var pm PrivateMessage
+		var pm types.PrivateMessage
 		if err := json.Unmarshal(msg, &pm); err != nil {
 			fmt.Println("Error unmarshalling message:", err)
 			errMsg := websocket.FormatCloseMessage(websocket.CloseUnsupportedData, "unsupported type")
@@ -74,15 +83,25 @@ func (c *Client) Read(hub *Hub) {
 }
 
 func (c *Client) Write(hub *Hub) {
-
 	defer c.unregisterSafe(hub)
 
-	for msg := range c.send {
+	for {
+		select {
+		case msg, ok := <-c.send:
+			if !ok {
+				return
+			}
 
-		fmt.Println("Sending message:", string(msg))
-		err := c.conn.WriteMessage(websocket.TextMessage, msg)
-		if err != nil {
-			break
+			fmt.Println("Sending message:", msg)
+
+			if err := c.conn.WriteJSON(msg); err != nil {
+				fmt.Println("Write error:", err)
+				return
+			}
+
+		case msg := <-c.err:
+			c.conn.WriteJSON("Error in sending message" + msg)
+			return
 		}
 	}
 }

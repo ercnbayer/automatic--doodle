@@ -18,6 +18,8 @@ type Tx struct {
 	Job *JobClient
 	// JobApplication is the client for interacting with the JobApplication builders.
 	JobApplication *JobApplicationClient
+	// Messages is the client for interacting with the Messages builders.
+	Messages *MessagesClient
 	// RefreshToken is the client for interacting with the RefreshToken builders.
 	RefreshToken *RefreshTokenClient
 	// User is the client for interacting with the User builders.
@@ -156,6 +158,7 @@ func (tx *Tx) init() {
 	tx.File = NewFileClient(tx.config)
 	tx.Job = NewJobClient(tx.config)
 	tx.JobApplication = NewJobApplicationClient(tx.config)
+	tx.Messages = NewMessagesClient(tx.config)
 	tx.RefreshToken = NewRefreshTokenClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

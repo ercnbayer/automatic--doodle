@@ -6,6 +6,7 @@ type Websocket struct {
 	authenticationMiddleware AuthenticationMiddleware
 	userRepository           UserRepository
 	hub                      *Hub
+	websocketService         WebsocketService
 }
 
 var (
@@ -16,12 +17,14 @@ var (
 func New(
 	authenticationMiddleware AuthenticationMiddleware,
 	userRepository UserRepository,
+	websocketService WebsocketService,
+
 ) *Websocket {
 	moduleOnce.Do(func() {
 		module = Websocket{
 			authenticationMiddleware: authenticationMiddleware,
 			userRepository:           userRepository,
-			hub:                      NewHub(),
+			hub:                      NewHub(websocketService),
 		}
 		go module.hub.Run()
 	})

@@ -721,6 +721,52 @@ func HasJobapplWith(preds ...predicate.JobApplication) predicate.User {
 	})
 }
 
+// HasReceivedMessages applies the HasEdge predicate on the "received_messages" edge.
+func HasReceivedMessages() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReceivedMessagesTable, ReceivedMessagesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReceivedMessagesWith applies the HasEdge predicate on the "received_messages" edge with a given conditions (other predicates).
+func HasReceivedMessagesWith(preds ...predicate.Messages) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newReceivedMessagesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSentMessages applies the HasEdge predicate on the "sent_messages" edge.
+func HasSentMessages() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SentMessagesTable, SentMessagesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSentMessagesWith applies the HasEdge predicate on the "sent_messages" edge with a given conditions (other predicates).
+func HasSentMessagesWith(preds ...predicate.Messages) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newSentMessagesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

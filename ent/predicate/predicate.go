@@ -15,6 +15,9 @@ type Job func(*sql.Selector)
 // JobApplication is the predicate function for jobapplication builders.
 type JobApplication func(*sql.Selector)
 
+// Messages is the predicate function for messages builders.
+type Messages func(*sql.Selector)
+
 // RefreshToken is the predicate function for refreshtoken builders.
 type RefreshToken func(*sql.Selector)
 

@@ -6,6 +6,7 @@ import (
 	authService "automatic-doodle/modules/auth/service"
 	FileRest "automatic-doodle/modules/file/rest"
 	jobRest "automatic-doodle/modules/job/rest"
+	messageRest "automatic-doodle/modules/messages/rest"
 	ProfileRest "automatic-doodle/modules/profile/rest"
 	"automatic-doodle/modules/router"
 	userRest "automatic-doodle/modules/user/rest"
@@ -45,6 +46,7 @@ var (
 		wire.Bind(new(jobRest.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
 		wire.Bind(new(jobApplRest.AuthMiddleware), new(*authenticationMiddleware.Middleware)),
 		wire.Bind(new(websocket.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
+		wire.Bind(new(messageRest.AuthenticationMiddleware), new(*authenticationMiddleware.Middleware)),
 
 		wire.InterfaceValue(new(authenticationMiddleware.Logger), logger.New("Authentication Middleware Logger", nil)),
 	)

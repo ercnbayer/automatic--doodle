@@ -26,7 +26,7 @@ func (w *Websocket) WebSocketHandler(hub *Hub) fiber.Handler {
 		client := &Client{
 			conn: conn,
 			user: authUser,
-			send: make(chan []byte, 4096),
+			send: make(chan *types.PrivateMessage, 4096),
 		}
 
 		log.Println(client.user)
